@@ -12,7 +12,7 @@ class reward:
             if i == 0:
                 cycletime += self.get_time('0,0,0', action[i])
 
-                
+
             else:
                 cycletime += self.get_time(action[i], action[i - 1])
 
