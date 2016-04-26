@@ -1,16 +1,11 @@
-# This is heavily based off https://github.com/asrivat1/DeepLearningVideoGames
-import os
-import random
-from collections import deque
-from pong_player import PongPlayer
 import tensorflow as tf
 import numpy as np
+from collections import deque
+import random
 import cv2
-from pygame.constants import K_DOWN, K_UP
 
-
-class DeepQPongPlayer(PongPlayer):
-    ACTIONS_COUNT = 3  # number of valid actions. In this case up, still and down
+class train:
+    ACTIONS_COUNT = 2  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
     OBSERVATION_STEPS = 500000.  # time steps to observe before training
     EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
@@ -25,20 +20,10 @@ class DeepQPongPlayer(PongPlayer):
     LEARN_RATE = 1e-6
     STORE_SCORES_LEN = 200.
 
-    def __init__(self, checkpoint_path="deep_q_pong_networks_simple", playback_mode=False):
-        """
-        Example of deep q network for pong
+    def __init__(self):
 
-        :param checkpoint_path: directory to store checkpoints in
-        :type checkpoint_path: str
-        :param playback_mode: if true games runs in real time mode and demos itself running
-        :type playback_mode: bool
-        """
-        self._playback_mode = playback_mode
-        super(DeepQPongPlayer, self).__init__(force_game_fps=8, run_real_time=playback_mode)
-        self._checkpoint_path = checkpoint_path
         self._session = tf.Session()
-        self._input_layer, self._output_layer = DeepQPongPlayer._create_network()
+        self._input_layer, self._output_layer = train._create_network()
 
         self._action = tf.placeholder("float", [None, self.ACTIONS_COUNT])
         self._target = tf.placeholder("float", [None])
@@ -61,16 +46,6 @@ class DeepQPongPlayer(PongPlayer):
 
         self._session.run(tf.initialize_all_variables())
 
-        if not os.path.exists(self._checkpoint_path):
-            os.mkdir(self._checkpoint_path)
-        self._saver = tf.train.Saver()
-        checkpoint = tf.train.get_checkpoint_state(self._checkpoint_path)
-
-        if checkpoint and checkpoint.model_checkpoint_path:
-            self._saver.restore(self._session, checkpoint.model_checkpoint_path)
-            print("Loaded checkpoints %s" % checkpoint.model_checkpoint_path)
-        if playback_mode:
-            raise Exception("Could not load checkpoints for playback")
 
     def get_keys_pressed(self, screen_array, reward, terminal):
         # scale down game image
@@ -126,6 +101,7 @@ class DeepQPongPlayer(PongPlayer):
 
         return DeepQPongPlayer._key_presses_from_action(self._last_action)
 
+
     def _choose_next_action(self):
         new_action = np.zeros([self.ACTIONS_COUNT])
 
@@ -140,7 +116,8 @@ class DeepQPongPlayer(PongPlayer):
         new_action[action_index] = 1
         return new_action
 
-    def _train(self):
+
+    def _train(self, training_data):
         # sample a mini_batch to train on
         mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
         # get the batch variables
@@ -165,14 +142,11 @@ class DeepQPongPlayer(PongPlayer):
             self._action: actions,
             self._target: agents_expected_reward})
 
-        # save checkpoints for later
-        if self._time % self.SAVE_EVERY_X_STEPS == 0:
-            self._saver.save(self._session, self._checkpoint_path + '/network', global_step=self._time)
 
     @staticmethod
-    def _create_network():
+    def _create_network(self):
         # network weights
-        convolution_weights_1 = tf.Variable(tf.truncated_normal([8, 8, DeepQPongPlayer.STATE_FRAMES, 32], stddev=0.01))
+        convolution_weights_1 = tf.Variable(tf.truncated_normal([8, 8, self.STATE_FRAMES, 32], stddev=0.01))
         convolution_bias_1 = tf.Variable(tf.constant(0.01, shape=[32]))
 
         convolution_weights_2 = tf.Variable(tf.truncated_normal([4, 4, 32, 64], stddev=0.01))
@@ -184,14 +158,15 @@ class DeepQPongPlayer(PongPlayer):
         feed_forward_weights_1 = tf.Variable(tf.truncated_normal([1600, 256], stddev=0.01))
         feed_forward_bias_1 = tf.Variable(tf.constant(0.01, shape=[256]))
 
-        feed_forward_weights_2 = tf.Variable(tf.truncated_normal([256, DeepQPongPlayer.ACTIONS_COUNT], stddev=0.01))
-        feed_forward_bias_2 = tf.Variable(tf.constant(0.01, shape=[DeepQPongPlayer.ACTIONS_COUNT]))
+        feed_forward_weights_2 = tf.Variable(tf.truncated_normal([256, self.ACTIONS_COUNT], stddev=0.01))
+        feed_forward_bias_2 = tf.Variable(tf.constant(0.01, shape=[self.ACTIONS_COUNT]))
 
-        input_layer = tf.placeholder("float", [None, DeepQPongPlayer.RESIZED_SCREEN_X, DeepQPongPlayer.RESIZED_SCREEN_Y,
-                                               DeepQPongPlayer.STATE_FRAMES])
+        input_layer = tf.placeholder("float", [None, self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y,
+                                               self.STATE_FRAMES])
 
         hidden_convolutional_layer_1 = tf.nn.relu(
-            tf.nn.conv2d(input_layer, convolution_weights_1, strides=[1, 4, 4, 1], padding="SAME") + convolution_bias_1)
+            tf.nn.conv2d(input_layer, convolution_weights_1, strides=[1, 4, 4, 1],
+                         padding="SAME") + convolution_bias_1)
 
         hidden_max_pooling_layer = tf.nn.max_pool(hidden_convolutional_layer_1, ksize=[1, 2, 2, 1],
                                                   strides=[1, 2, 2, 1], padding="SAME")
@@ -212,21 +187,3 @@ class DeepQPongPlayer(PongPlayer):
         output_layer = tf.matmul(final_hidden_activations, feed_forward_weights_2) + feed_forward_bias_2
 
         return input_layer, output_layer
-
-    @staticmethod
-    def _key_presses_from_action(action_set):
-        if action_set[0] == 1:
-            return [K_DOWN]
-        elif action_set[1] == 1:
-            return []
-        elif action_set[2] == 1:
-            return [K_UP]
-        raise Exception("Unexpected action")
-
-
-if __name__ == '__main__':
-    player = DeepQPongPlayer()
-    player.playing = True
-
-    # importing pong will start the game playing
-    import games.pong
