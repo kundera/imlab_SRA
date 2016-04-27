@@ -49,23 +49,17 @@ class train:
 
     def get_keys_pressed(self, screen_array, reward, terminal):
         # scale down game image
-        screen_resized_grayscaled = cv2.cvtColor(cv2.resize(screen_array,
-                                                            (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y)),
-                                                 cv2.COLOR_BGR2GRAY)
+        screen_resized_grayscaled = cv2.resize(screen_array, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
 
-        # set the grayscale to have values in the 0.0 to 1.0 range
-        ret, screen_resized_grayscaled = cv2.threshold(screen_resized_grayscaled, 1, 255, cv2.THRESH_BINARY)
-
-        if reward != 0.0:
-            self._last_scores.append(reward)
-            if len(self._last_scores) > self.STORE_SCORES_LEN:
-                self._last_scores.popleft()
+        self._last_scores.append(reward)
+        if len(self._last_scores) > self.STORE_SCORES_LEN:
+            self._last_scores.popleft()
 
         # first frame must be handled differently
         if self._last_state is None:
             # the _last_state will contain the image data from the last self.STATE_FRAMES frames
             self._last_state = np.stack(tuple(screen_resized_grayscaled for _ in range(self.STATE_FRAMES)), axis=2)
-            return DeepQPongPlayer._key_presses_from_action(self._last_action)
+            return train._key_presses_from_action(self._last_action)
 
         screen_resized_grayscaled = np.reshape(screen_resized_grayscaled,
                                                (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
@@ -99,7 +93,7 @@ class train:
                   (self._time, self._probability_of_random_action, reward,
                    sum(self._last_scores) / self.STORE_SCORES_LEN))
 
-        return DeepQPongPlayer._key_presses_from_action(self._last_action)
+        return train._key_presses_from_action(self._last_action)
 
 
     def _choose_next_action(self):
@@ -187,3 +181,18 @@ class train:
         output_layer = tf.matmul(final_hidden_activations, feed_forward_weights_2) + feed_forward_bias_2
 
         return input_layer, output_layer
+
+
+    @staticmethod
+    def _key_presses_from_action(action_set):
+        if action_set[0] == 1:
+            return [K_DOWN]
+        elif action_set[1] == 1:
+            return []
+        elif action_set[2] == 1:
+            return [K_UP]
+        raise Exception("Unexpected action")
+
+
+if __name__ == '__main__':
+    player = train()
