@@ -57,7 +57,7 @@ class action(object):
         G.add_node('start',loca=[0,0,0])
         G.add_node('end',loca=[0,0,0])
         rack = self.adjust_rs(rs)
-        outputs = ['10','18']
+        outputs = output
         #outputs = [self.output_list[i:i+2] for i in range(0, len(self.output_list), 2)]
         init_loca = [0,0,0]
         end_loca = [0,0,0]
@@ -84,13 +84,13 @@ class action(object):
                                 if data == 0.0:
                                     G.remove_edge('%s'%(n), '%s'%(nbr))
 
-# ============================================== create 'Rr'============================================================
+# ============================================== create 'R1R2'============================================================
 
                         for c, item in enumerate(rack):
                             loca3 = self.loca_calculate(c)
                             if item == outputs[0]:
                                 G.add_node('%s_r1' % (c), loca=loca3)
-                                G.add_edge('%s_s2' % (b), '%s_r1' % (c), weight=self.get_time(init_loca, loca3))
+                                G.add_edge('%s_s2' % (b), '%s_r1' % (c), weight=self.get_time(loca2, loca3))
 
                                 for d, item in enumerate(rack):
                                     loca4 = self.loca_calculate(d)
@@ -123,10 +123,81 @@ class action(object):
 
 
 
+    def dijk_ssr2r1(self, rs, output):
+        G = nx.Graph()
+        G.add_node('start',loca=[0,0,0])
+        G.add_node('end',loca=[0,0,0])
+        rack = self.adjust_rs(rs)
+        outputs = output
+        #outputs = [self.output_list[i:i+2] for i in range(0, len(self.output_list), 2)]
+        init_loca = [0,0,0]
+        end_loca = [0,0,0]
+# ============================================== create first 'S'=======================================================
+        for a, item in enumerate(rack):
+            if item == '-1' :
+                loca1 = self.loca_calculate(a)
+                #print loca1
+                G.add_node('%s_s1'%(a),loca=loca1)
+                G.add_edge('start', '%s_s1'%(a), weight = self.get_time(init_loca,loca1))
+
+#============================================== create second 'S'=======================================================
+
+                for b, item in enumerate(rack):
+                    if item == '-1' :
+                        loca2 = self.loca_calculate(b)
+                        G.add_node('%s_s2'%(b),loca=loca2)
+                        G.add_edge('%s_s1'%(a), '%s_s2'%(b), weight = self.get_time(loca1,loca2))
+
+#============================================== remove edges weighted 0=================================================
+                        for n,nbrs in G.adjacency_iter():
+                            for nbr,eattr in nbrs.items():
+                                data = eattr['weight']
+                                if data == 0.0:
+                                    G.remove_edge('%s'%(n), '%s'%(nbr))
+
+# ============================================== create 'R2R1'============================================================
+
+                        for c, item in enumerate(rack):
+                            loca3 = self.loca_calculate(c)
+                            if item == outputs[1]:
+                                G.add_node('%s_r2' % (c), loca=loca3)
+                                G.add_edge('%s_s2' % (b), '%s_r2' % (c), weight=self.get_time(loca2, loca3))
+
+                                for d, item in enumerate(rack):
+                                    loca4 = self.loca_calculate(d)
+                                    if item == outputs[0]:
+                                        G.add_node('%s_r1' % (d), loca=loca4)
+                                        G.add_edge('%s_r2' % (c), '%s_r1' % (d), weight=self.get_time(loca3, loca4))
+
+#============================================== remove edges weighted 0=================================================
+                                        for n, nbrs in G.adjacency_iter():
+                                            for nbr, eattr in nbrs.items():
+                                                data = eattr['weight']
+                                                if data == 0.0:
+                                                    G.remove_edge('%s' % (n), '%s' % (nbr))
+# ============================================== final connect with 'end'===============================================
+                                        G.add_edge('%s_r1' % (d), 'end' ,weight = self.get_time(loca4,end_loca))
+
+        #print G.node
+        #print G.edge
+
+
+        path = nx.all_pairs_dijkstra_path(G)
+        length = nx.all_pairs_dijkstra_path_length(G)
+        nx.draw_networkx(G ,arrows=True,with_labels=True)
+        plt.show()
+        print 'SSR2R1', path['start']['end'] , length['start']['end']
+        return path['start']['end'] , length['start']['end']
+
+
+
+
 test = action()
 rs1 = test.rs1
 output_list = test.output
 #print test.rs1
 #print output_list
+print test.dijk_ssr1r2(rs1,['10','18'])
+print test.dijk_ssr2r1(rs1,['10','18'])
 
-print test.dijk_ssr1r2(rs1,'10, 18')
+
