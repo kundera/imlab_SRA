@@ -52,7 +52,7 @@ class action(object):
         rack = action.simul.adjust_rs(rs)
         init_loca = [0,0,0]
         end_loca = [0,0,0]
-
+# ============================================== create first 'S'=======================================================
         for a, item in enumerate(rack):
             if item == -1 :
                 loca1 = self.loca_calculate(a)
@@ -63,6 +63,7 @@ class action(object):
                 G.add_node('%s_s1'%(a),loca=loca1)
                 G.add_edge('start', '%s_s1'%(a), weight = self.get_time(init_loca,loca1))
                 #G.add_
+#============================================== create second 'S'=======================================================
 
                 for b, item in enumerate(rack):
                     if item == -1 :
@@ -70,9 +71,18 @@ class action(object):
                         G.add_node('%s_s2'%(b),loca=loca2)
                         G.add_edge('%s_s1'%(a), '%s_s2'%(b), weight = self.get_time(loca1,loca2))
 
+#============================================== remove edges weighted 0=================================================
+                        for n,nbrs in G.adjacency_iter():
+                            for nbr,eattr in nbrs.items():
+                                data = eattr['weight']
+                                if data == 0.0:
+                                    G.remove_edge('%s'%(n), '%s'%(nbr))
+
+# ============================================== create first 'R'=======================================================
 
         print G.node
         print G.edge
+        print input
         nx.draw_networkx(G ,arrows=True,with_labels=True)
         plt.show()
 
