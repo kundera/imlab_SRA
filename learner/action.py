@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 class action(object):
 
-    tidx = 6 # tableidx in DB
+    tidx = 2 # tableidx in DB
     pidx = 1 # problemidx in DB
     testset = problemreader.ProblemWithSolutionReader(tidx, pidx) # get test set from DB
     rs1 = testset.get_problem_with_solution().rack
@@ -16,6 +16,7 @@ class action(object):
     output = testset.get_problem_with_solution().output
     input_list = input.replace(" ","").split(",")
     output_list = output.replace(" ","").split(",")
+
     yspeed = 2.5
     zspeed = 0.6666667
 
@@ -26,7 +27,7 @@ class action(object):
 
         loca = []
 
-        if index / (action.rack_size_h * action.rack_size_v) == 0 :
+        if math.floor(index / (action.rack_size_h * action.rack_size_v)) == 0 :
             loca.append(int(math.floor(index / (action.rack_size_h * action.rack_size_v))))
             loca.append(int(math.floor(index / action.rack_size_v)))
             loca.append(int(index % action.rack_size_v))
@@ -45,28 +46,33 @@ class action(object):
                    abs((start[2] - end[2]) / self.zspeed))
 
 
-    def dijk_ssrr(self, rs):
+    def adjust_rs(self, rs1):
+        rs1 = rs1.replace(" ", "")
+        rs1 = rs1.split(",")
+
+        return rs1
+
+    def dijk_ssr1r2(self, rs, output):
         G = nx.Graph()
         G.add_node('start',loca=[0,0,0])
         G.add_node('end',loca=[0,0,0])
-        rack = action.simul.adjust_rs(rs)
+        rack = self.adjust_rs(rs)
+        outputs = ['10','18']
+        #outputs = [self.output_list[i:i+2] for i in range(0, len(self.output_list), 2)]
         init_loca = [0,0,0]
         end_loca = [0,0,0]
 # ============================================== create first 'S'=======================================================
         for a, item in enumerate(rack):
-            if item == -1 :
+            if item == '-1' :
                 loca1 = self.loca_calculate(a)
-                print loca1
-                #minus_one_list = []
-                #minus_one_list.append(item)
-                #for i in
+                #print loca1
                 G.add_node('%s_s1'%(a),loca=loca1)
                 G.add_edge('start', '%s_s1'%(a), weight = self.get_time(init_loca,loca1))
-                #G.add_
+
 #============================================== create second 'S'=======================================================
 
                 for b, item in enumerate(rack):
-                    if item == -1 :
+                    if item == '-1' :
                         loca2 = self.loca_calculate(b)
                         G.add_node('%s_s2'%(b),loca=loca2)
                         G.add_edge('%s_s1'%(a), '%s_s2'%(b), weight = self.get_time(loca1,loca2))
@@ -78,17 +84,49 @@ class action(object):
                                 if data == 0.0:
                                     G.remove_edge('%s'%(n), '%s'%(nbr))
 
-# ============================================== create first 'R'=======================================================
+# ============================================== create 'Rr'============================================================
 
-        print G.node
-        print G.edge
-        print input
+                        for c, item in enumerate(rack):
+                            loca3 = self.loca_calculate(c)
+                            if item == outputs[0]:
+                                G.add_node('%s_r1' % (c), loca=loca3)
+                                G.add_edge('%s_s2' % (b), '%s_r1' % (c), weight=self.get_time(init_loca, loca3))
+
+                                for d, item in enumerate(rack):
+                                    loca4 = self.loca_calculate(d)
+                                    if item == outputs[1]:
+                                        G.add_node('%s_r2' % (d), loca=loca4)
+                                        G.add_edge('%s_r1' % (c), '%s_r2' % (d), weight=self.get_time(loca3, loca4))
+
+#============================================== remove edges weighted 0=================================================
+                                        for n, nbrs in G.adjacency_iter():
+                                            for nbr, eattr in nbrs.items():
+                                                data = eattr['weight']
+                                                if data == 0.0:
+                                                    G.remove_edge('%s' % (n), '%s' % (nbr))
+
+                                        G.add_edge('%s_r2' % (d), 'end' ,weight = self.get_time(loca4,end_loca))
+
+        #print G.node
+        #print G.edge
+
+
+        path = nx.all_pairs_dijkstra_path(G)
+        length = nx.all_pairs_dijkstra_path_length(G)
         nx.draw_networkx(G ,arrows=True,with_labels=True)
         plt.show()
+        print 'SSR1R2', path['start']['end'] , length['start']['end']
+        return path['start']['end'] , length['start']['end']
+
+
+
+
 
 
 test = action()
 rs1 = test.rs1
+output_list = test.output
+#print test.rs1
+#print output_list
 
-print test.dijk_ssrr(rs1)
-
+print test.dijk_ssr1r2(rs1,'10, 18')
