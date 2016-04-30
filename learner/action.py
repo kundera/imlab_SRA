@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 class action(object):
 
-    tidx = 2 # tableidx in DB
+    tidx = 4 # tableidx in DB
     pidx = 1 # problemidx in DB
     testset = problemreader.ProblemWithSolutionReader(tidx, pidx) # get test set from DB
     rs1 = testset.get_problem_with_solution().rack
@@ -52,13 +52,16 @@ class action(object):
 
         return rs1
 
-    def dijk_ssr1r2(self, rs, output):
+#=======================================================================================================================
+
+    def dijk_ssr1r2(self, rs, output): # ex :output = raw data
         G = nx.Graph()
         G.add_node('start',loca=[0,0,0])
         G.add_node('end',loca=[0,0,0])
         rack = self.adjust_rs(rs)
-        outputs = output
-        #outputs = [self.output_list[i:i+2] for i in range(0, len(self.output_list), 2)]
+        output_list = output.replace(" ", "").split(",")
+        outputs = [output_list[i:i+2] for i in range(0, len(output_list), 2)]
+        outputs = outputs[0]
         init_loca = [0,0,0]
         end_loca = [0,0,0]
 # ============================================== create first 'S'=======================================================
@@ -105,6 +108,8 @@ class action(object):
                                                 if data == 0.0:
                                                     G.remove_edge('%s' % (n), '%s' % (nbr))
 
+#============================================== final connect with 'end'node============================================
+
                                         G.add_edge('%s_r2' % (d), 'end' ,weight = self.get_time(loca4,end_loca))
 
         #print G.node
@@ -119,17 +124,18 @@ class action(object):
         return path['start']['end'] , length['start']['end']
 
 
+#=======================================================================================================================
 
 
 
-
-    def dijk_ssr2r1(self, rs, output):
+    def dijk_ssr2r1(self, rs, output): # ex :output = ['10','18]
         G = nx.Graph()
         G.add_node('start',loca=[0,0,0])
         G.add_node('end',loca=[0,0,0])
         rack = self.adjust_rs(rs)
-        outputs = output
-        #outputs = [self.output_list[i:i+2] for i in range(0, len(self.output_list), 2)]
+        output_list = output.replace(" ", "").split(",")
+        outputs = [output_list[i:i+2] for i in range(0, len(output_list), 2)]
+        outputs = outputs[0]
         init_loca = [0,0,0]
         end_loca = [0,0,0]
 # ============================================== create first 'S'=======================================================
@@ -175,7 +181,7 @@ class action(object):
                                                 data = eattr['weight']
                                                 if data == 0.0:
                                                     G.remove_edge('%s' % (n), '%s' % (nbr))
-# ============================================== final connect with 'end'===============================================
+#============================================== final connect with 'end'node============================================
                                         G.add_edge('%s_r1' % (d), 'end' ,weight = self.get_time(loca4,end_loca))
 
         #print G.node
@@ -194,10 +200,8 @@ class action(object):
 
 test = action()
 rs1 = test.rs1
-output_list = test.output
+output = test.output
 #print test.rs1
 #print output_list
-print test.dijk_ssr1r2(rs1,['10','18'])
-print test.dijk_ssr2r1(rs1,['10','18'])
-
-
+print test.dijk_ssr1r2(rs1,output)
+print test.dijk_ssr2r1(rs1,output)
