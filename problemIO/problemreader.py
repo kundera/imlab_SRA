@@ -52,5 +52,5 @@ class ProblemWithSolutionReader(ProblemReader):
         return pws
 
 if __name__ == '__main__':
-    test = ProblemWithSolutionReader(5, 1)
-    print test.get_problem_with_solution().NN_sol
+    test = ProblemWithSolutionReader(2, 3)
+    print test.get_problem_with_solution().output

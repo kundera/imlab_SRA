@@ -1,4 +1,3 @@
-from simulator import Simulator
 from problemIO import problemreader
 import networkx as nx
 import math
@@ -6,21 +5,19 @@ import matplotlib.pyplot as plt
 
 class action(object):
 
-    tidx = 3  # tableidx in DB
+
+
+    tidx = 2  # tableidx in DB
     pidx = 1  # problemidx in DB
     testset = problemreader.ProblemWithSolutionReader(tidx, pidx)  # get test set from DB
     rs1 = testset.get_problem_with_solution().rack
     rack_size_h = testset.get_problem_with_solution().columnNum  # the number of column
     rack_size_v = testset.get_problem_with_solution().floorNum  # the number of floor
-    input = testset.get_problem_with_solution().input
     output = testset.get_problem_with_solution().output
-    input_list = input.replace(" ", "").split(",")
-    output_list = output.replace(" ", "").split(",")
-
     yspeed = 2.5
     zspeed = 0.6666667
 
-    simul = Simulator.simul()
+
 
     def loca_calculate(self, index):
 
@@ -48,14 +45,14 @@ class action(object):
 
         return rs1
 
-    def dijk_ssr1r2(self, rs, output):
+    def dijk_ssr1r2(self, rs, outputs):
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0])
         G.add_node('end', loca=[0, 0, 0])
         rack = self.adjust_rs(rs)
-        output_list = output.replace(" ", "").split(",")
-        outputs = [output_list[i:i+2] for i in range(0, len(output_list), 2)]
-        outputs = outputs[0]
+        #output_list = output.replace(" ", "").split(",")
+        #outputs = [output_list[i:i+2] for i in range(0, len(output_list), 2)]
+        #outputs = outputs[0]
         init_loca = [0, 0, 0]
         end_loca = [0, 0, 0]
 
@@ -112,14 +109,14 @@ class action(object):
         # plt.show()
         return 'SSR1R2', path['start']['end'], length['start']['end']
 
-    def dijk_ssr2r1(self, rs, output):  # ex :output = ['10','18]
+    def dijk_ssr2r1(self, rs, outputs):  # ex :output = ['10','18]
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0])
         G.add_node('end', loca=[0, 0, 0])
         rack = self.adjust_rs(rs)
-        output_list = output.replace(" ", "").split(",")
-        outputs = [output_list[i:i+2] for i in range(0, len(output_list), 2)]
-        outputs = outputs[0]
+        #output_list = output.replace(" ", "").split(",")
+        #outputs = [output_list[i:i+2] for i in range(0, len(output_list), 2)]
+        #outputs = outputs[0]
         init_loca = [0, 0, 0]
         end_loca = [0, 0, 0]
 
@@ -161,14 +158,14 @@ class action(object):
         # print 'SSR2R1', path['start']['end'] , length['start']['end']
         return 'SSR2R1', path['start']['end'], length['start']['end']
 
-    def dijk_sr1sr2(self, rs, output):
+    def dijk_sr1sr2(self, rs, outputs):
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0])
         G.add_node('end', loca=[0, 0, 0])
         rack = self.adjust_rs(rs)
-        output_list = output.replace(" ", "").split(",")
-        outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
-        outputs = outputs[0]
+        #output_list = output.replace(" ", "").split(",")
+        #outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
+        #outputs = outputs[0]
         init_loca = [0, 0, 0]
         end_loca = [0, 0, 0]
 
@@ -216,14 +213,14 @@ class action(object):
         # print 'SR1SR2', path['start']['end'], length['start']['end']
         return 'SR1SR2', path['start']['end'], length['start']['end']
 
-    def dijk_sr2sr1(self, rs, output):
+    def dijk_sr2sr1(self, rs, outputs):
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0])
         G.add_node('end', loca=[0, 0, 0])
         rack = self.adjust_rs(rs)
-        output_list = output.replace(" ", "").split(",")
-        outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
-        outputs = outputs[0]
+        #output_list = output.replace(" ", "").split(",")
+        #outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
+        #outputs = outputs[0]
         init_loca = [0, 0, 0]
         end_loca = [0, 0, 0]
 
@@ -271,12 +268,34 @@ class action(object):
         # print 'SR2SR1', path['start']['end'], length['start']['end']
         return 'SR2SR1', path['start']['end'], length['start']['end']
 
+    def dijk(self,tidx,pidx,output): # concatenate 4 solutions // output example : ['51', '1'] = 1 cycle outputs
+        action.tidx = tidx
+        action.pidx = pidx
+        dijk_test = problemreader.ProblemWithSolutionReader(tidx, pidx)
+
+        action.rs1 = dijk_test.get_problem_with_solution().rack
+        action.rack_size_h = dijk_test.get_problem_with_solution().columnNum  # the number of column
+        action.rack_size_v = dijk_test.get_problem_with_solution().floorNum  # the number of floor
+        action.output = dijk_test.get_problem_with_solution().output
+
+        print test.dijk_ssr1r2(action.rs1, output)
+        print test.dijk_ssr2r1(action.rs1, output)
+        print test.dijk_sr1sr2(action.rs1, output)
+        print test.dijk_sr2sr1(action.rs1, output)
+
+
+
+
+
 if __name__ == '__main__':
     test = action()
-    rs1 = test.rs1
-    output = test.output
+    testset = problemreader.ProblemWithSolutionReader(3, 1) # config testset index
 
-    print test.dijk_ssr1r2(rs1, output)
-    print test.dijk_ssr2r1(rs1, output)
-    print test.dijk_sr1sr2(rs1, output)
-    print test.dijk_sr2sr1(rs1, output)
+    output = testset.get_problem_with_solution().output
+    output_list = output.replace(" ", "").split(",")
+    outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
+    outputs = outputs[0]
+    print outputs
+
+    test.dijk(3,1,outputs) #execute dijk function here!!!
+
