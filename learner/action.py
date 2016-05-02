@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 class action(object):
 
-    tidx = 4  # tableidx in DB
+    tidx = 3  # tableidx in DB
     pidx = 1  # problemidx in DB
     testset = problemreader.ProblemWithSolutionReader(tidx, pidx)  # get test set from DB
     rs1 = testset.get_problem_with_solution().rack
@@ -187,29 +187,27 @@ class action(object):
                         G.add_edge('%s_s1' % loca1, '%s_r1' % loca2, weight=self.get_time(loca1, loca2))
 
                         # create s2
+                        loca3 = self.loca_calculate(b)
                         for c, item3 in enumerate(rack):
-                            # if item3 == '-1' and a != c:
-                            if c == b:
-                                loca3 = self.loca_calculate(c)
-                                for e, item5 in enumerate(rack):
-                                    loca5 = self.loca_calculate(e)
-                                    if e != b and loca5[0] == '-1' and loca3[1] == loca5[1] and loca3[2] == loca5[2]:
-                                        loca3 = loca5
-                                        G.add_node('%s_s2' % loca3, loca=loca3)
-                                        G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
-                                    else:
-                                        G.add_node('%s_s2' % loca3, loca=loca3)
-                                        G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
+                            # check the opposite side is empty
+                            loca5 = self.loca_calculate(c)
+                            if c != b and loca5[0] == '-1' and loca3[1] == loca5[1] and loca3[2] == loca5[2]:
+                                loca3 = loca5
+                                G.add_node('%s_s2' % loca3, loca=loca3)
+                                G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
+                            else:
+                                G.add_node('%s_s2' % loca3, loca=loca3)
+                                G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
 
-                                # create r2
-                                for d, item4 in enumerate(rack):
-                                    loca4 = self.loca_calculate(d)
-                                    if item4 == outputs[1] and b != d:
-                                        G.add_node('%s_r2' % loca4, loca=loca4)
-                                        G.add_edge('%s_s2' % loca3, '%s_r2' % loca4, weight=self.get_time(loca3, loca4))
+                            # create r2
+                            for d, item4 in enumerate(rack):
+                                loca4 = self.loca_calculate(d)
+                                if item4 == outputs[1] and b != d:
+                                    G.add_node('%s_r2' % loca4, loca=loca4)
+                                    G.add_edge('%s_s2' % loca3, '%s_r2' % loca4, weight=self.get_time(loca3, loca4))
 
-                                        # final connect with 'end'node
-                                        G.add_edge('%s_r2' % loca4, 'end', weight=self.get_time(loca4, end_loca))
+                                    # final connect with 'end'node
+                                    G.add_edge('%s_r2' % loca4, 'end', weight=self.get_time(loca4, end_loca))
 
         path = nx.all_pairs_dijkstra_path(G)
         length = nx.all_pairs_dijkstra_path_length(G)
@@ -244,29 +242,27 @@ class action(object):
                         G.add_edge('%s_s1' % loca1, '%s_r1' % loca2, weight=self.get_time(loca1, loca2))
 
                         # create s2
-                        for c, item3 in enumerate(rack):
-                            # if item3 == '-1' and a != c:
-                            if b == c:
-                                loca3 = self.loca_calculate(c)
-                                for e, item5 in enumerate(rack):
-                                    loca5 = self.loca_calculate(e)
-                                    if e != b and loca5[0] == '-1' and loca3[1] == loca5[1] and loca3[2] == loca5[2]:
-                                        loca3 = loca5
-                                        G.add_node('%s_s2' % loca3, loca=loca3)
-                                        G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
-                                    else:
-                                        G.add_node('%s_s2' % loca3, loca=loca3)
-                                        G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
+                        loca3 = self.loca_calculate(b)
+                        for c, item5 in enumerate(rack):
+                            loca5 = self.loca_calculate(c)
+                            # check the opposite side is empty
+                            if c != b and loca5[0] == '-1' and loca3[1] == loca5[1] and loca3[2] == loca5[2]:
+                                loca3 = loca5
+                                G.add_node('%s_s2' % loca3, loca=loca3)
+                                G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
+                            else:
+                                G.add_node('%s_s2' % loca3, loca=loca3)
+                                G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
 
-                                    # create r1
-                                    for d, item4 in enumerate(rack):
-                                        loca4 = self.loca_calculate(d)
-                                        if item4 == outputs[0] and b != d:
-                                            G.add_node('%s_r2' % loca4, loca=loca4)
-                                            G.add_edge('%s_s2' % loca3, '%s_r2' % loca4, weight=self.get_time(loca3, loca4))
+                            # create r1
+                            for d, item4 in enumerate(rack):
+                                loca4 = self.loca_calculate(d)
+                                if item4 == outputs[0] and b != d:
+                                    G.add_node('%s_r2' % loca4, loca=loca4)
+                                    G.add_edge('%s_s2' % loca3, '%s_r2' % loca4, weight=self.get_time(loca3, loca4))
 
-                                            # final connect with 'end'node
-                                            G.add_edge('%s_r2' % loca4, 'end', weight=self.get_time(loca4, end_loca))
+                                    # final connect with 'end'node
+                                    G.add_edge('%s_r2' % loca4, 'end', weight=self.get_time(loca4, end_loca))
 
         path = nx.all_pairs_dijkstra_path(G)
         length = nx.all_pairs_dijkstra_path_length(G)
