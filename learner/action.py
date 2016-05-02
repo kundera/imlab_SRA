@@ -280,7 +280,7 @@ if __name__ == '__main__':
     rs1 = test.rs1
     output = test.output
 
-    # print test.dijk_ssr1r2(rs1, output)
-    # print test.dijk_ssr2r1(rs1, output)
-    # print test.dijk_sr1sr2(rs1, output)
+    print test.dijk_ssr1r2(rs1, output)
+    print test.dijk_ssr2r1(rs1, output)
+    print test.dijk_sr1sr2(rs1, output)
     print test.dijk_sr2sr1(rs1, output)
