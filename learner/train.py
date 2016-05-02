@@ -3,9 +3,11 @@ import numpy as np
 from collections import deque
 import random
 import cv2
+import reward
+from problemIO import problemreader
 
 class train:
-    ACTIONS_COUNT = 2  # number of valid actions.
+    ACTIONS_COUNT = 5  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
     OBSERVATION_STEPS = 500000.  # time steps to observe before training
     EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
@@ -34,7 +36,6 @@ class train:
         self._train_operation = tf.train.AdamOptimizer(self.LEARN_RATE).minimize(cost)
 
         self._observations = deque()
-        self._last_scores = deque()
 
         # set the first action to do nothing
         self._last_action = np.zeros(self.ACTIONS_COUNT)
@@ -42,64 +43,14 @@ class train:
 
         self._last_state = None
         self._probability_of_random_action = self.INITIAL_RANDOM_ACTION_PROB
-        self._time = 0
 
         self._session.run(tf.initialize_all_variables())
-
-
-    def get_keys_pressed(self, screen_array, reward, terminal):
-        # scale down game image
-        screen_resized_grayscaled = cv2.resize(screen_array, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
-
-        self._last_scores.append(reward)
-        if len(self._last_scores) > self.STORE_SCORES_LEN:
-            self._last_scores.popleft()
-
-        # first frame must be handled differently
-        if self._last_state is None:
-            # the _last_state will contain the image data from the last self.STATE_FRAMES frames
-            self._last_state = np.stack(tuple(screen_resized_grayscaled for _ in range(self.STATE_FRAMES)), axis=2)
-            return train._key_presses_from_action(self._last_action)
-
-        screen_resized_grayscaled = np.reshape(screen_resized_grayscaled,
-                                               (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
-        current_state = np.append(screen_resized_grayscaled, self._last_state[:, :, 1:], axis=2)
-
-        if not self._playback_mode:
-            # store the transition in previous_observations
-            self._observations.append((self._last_state, self._last_action, reward, current_state, terminal))
-
-            if len(self._observations) > self.MEMORY_SIZE:
-                self._observations.popleft()
-
-            # only train if done observing
-            if len(self._observations) > self.OBSERVATION_STEPS:
-                self._train()
-                self._time += 1
-
-        # update the old values
-        self._last_state = current_state
-
-        self._last_action = self._choose_next_action()
-
-        if not self._playback_mode:
-            # gradually reduce the probability of a random actionself.
-            if self._probability_of_random_action > self.FINAL_RANDOM_ACTION_PROB \
-                    and len(self._observations) > self.OBSERVATION_STEPS:
-                self._probability_of_random_action -= \
-                    (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
-
-            print("Time: %s random_action_prob: %s reward %s scores differential %s" %
-                  (self._time, self._probability_of_random_action, reward,
-                   sum(self._last_scores) / self.STORE_SCORES_LEN))
-
-        return train._key_presses_from_action(self._last_action)
 
 
     def _choose_next_action(self):
         new_action = np.zeros([self.ACTIONS_COUNT])
 
-        if self._playback_mode or (random.random() <= self._probability_of_random_action):
+        if random.random() <= self._probability_of_random_action:
             # choose an action randomly
             action_index = random.randrange(self.ACTIONS_COUNT)
         else:
@@ -112,30 +63,67 @@ class train:
 
 
     def _train(self, training_data):
-        # sample a mini_batch to train on
-        mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
-        # get the batch variables
-        previous_states = [d[self.OBS_LAST_STATE_INDEX] for d in mini_batch]
-        actions = [d[self.OBS_ACTION_INDEX] for d in mini_batch]
-        rewards = [d[self.OBS_REWARD_INDEX] for d in mini_batch]
-        current_states = [d[self.OBS_CURRENT_STATE_INDEX] for d in mini_batch]
-        agents_expected_reward = []
-        # this gives us the agents expected reward for each action we might
-        agents_reward_per_action = self._session.run(self._output_layer, feed_dict={self._input_layer: current_states})
-        for i in range(len(mini_batch)):
-            if mini_batch[i][self.OBS_TERMINAL_INDEX]:
-                # this was a terminal frame so need so scale future reward...
-                agents_expected_reward.append(rewards[i])
-            else:
-                agents_expected_reward.append(
-                    rewards[i] + self.FUTURE_REWARD_DISCOUNT * np.max(agents_reward_per_action[i]))
 
-        # learn that these actions in these states lead to this reward
-        self._session.run(self._train_operation, feed_dict={
-            self._input_layer: previous_states,
-            self._action: actions,
-            self._target: agents_expected_reward})
+        cycleNum = training_data.requestLength / training_data.shuttleNum
 
+        for i in range(cycleNum):
+
+            # scale down game image
+            screen_resized = cv2.resize(screen_array, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+
+            # first frame must be handled differently
+            if self._last_state is None:
+                # the _last_state will contain the image data from the last self.STATE_FRAMES frames
+                self._last_state = np.stack(tuple(screen_resized for _ in range(self.STATE_FRAMES)), axis=2)
+                continue
+
+            screen_resized = np.reshape(screen_resized,
+                                                   (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
+            current_state = np.append(screen_resized, self._last_state[:, :, 1:], axis=2)
+
+            # store the transition in previous_observations
+            self._observations.append((self._last_state, self._last_action, reward.reward.get_cycletime()/reward.reward.get_maxtime(), current_state))
+
+            if len(self._observations) > self.MEMORY_SIZE:
+                self._observations.popleft()
+
+            # only train if done observing
+            if len(self._observations) > self.OBSERVATION_STEPS:
+                # sample a mini_batch to train on
+                mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
+                # get the batch variables
+                previous_states = [d[self.OBS_LAST_STATE_INDEX] for d in mini_batch]
+                actions = [d[self.OBS_ACTION_INDEX] for d in mini_batch]
+                rewards = [d[self.OBS_REWARD_INDEX] for d in mini_batch]
+                current_states = [d[self.OBS_CURRENT_STATE_INDEX] for d in mini_batch]
+                agents_expected_reward = []
+                # this gives us the agents expected reward for each action we might
+                agents_reward_per_action = self._session.run(self._output_layer,
+                                                             feed_dict={self._input_layer: current_states})
+                for i in range(len(mini_batch)):
+                    if mini_batch[i][self.OBS_TERMINAL_INDEX]:
+                        # this was a terminal frame so need so scale future reward...
+                        agents_expected_reward.append(rewards[i])
+                    else:
+                        agents_expected_reward.append(
+                            rewards[i] + self.FUTURE_REWARD_DISCOUNT * np.max(agents_reward_per_action[i]))
+
+                # learn that these actions in these states lead to this reward
+                self._session.run(self._train_operation, feed_dict={
+                    self._input_layer: previous_states,
+                    self._action: actions,
+                    self._target: agents_expected_reward})
+
+            # update the old values
+            self._last_state = current_state
+
+            self._last_action = self._choose_next_action()
+
+            # gradually reduce the probability of a random actionself.
+            if self._probability_of_random_action > self.FINAL_RANDOM_ACTION_PROB \
+                    and len(self._observations) > self.OBSERVATION_STEPS:
+                self._probability_of_random_action -= \
+                    (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
 
     @staticmethod
     def _create_network(self):
@@ -183,16 +171,7 @@ class train:
         return input_layer, output_layer
 
 
-    @staticmethod
-    def _key_presses_from_action(action_set):
-        if action_set[0] == 1:
-            return [K_DOWN]
-        elif action_set[1] == 1:
-            return []
-        elif action_set[2] == 1:
-            return [K_UP]
-        raise Exception("Unexpected action")
-
-
 if __name__ == '__main__':
-    player = train()
+    tr = train()
+    pr = problemreader.ProblemReader(20,1)
+    tr._train(pr.get_problem())

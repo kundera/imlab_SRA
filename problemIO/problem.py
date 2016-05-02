@@ -1,10 +1,11 @@
 class Problem:
 
-    def __init__(self, aisleNum, columnNum, floorNum, itemTypeNum, shuttleNum):
+    def __init__(self, aisleNum, columnNum, floorNum, itemTypeNum, requestLength, shuttleNum):
         self.aisleNum = aisleNum
         self.columnNum = columnNum
         self.floorNum = floorNum
         self.itemTypeNum = itemTypeNum
+        self.requestLength = requestLength
         self.shuttleNum = shuttleNum
 
     def set_problem(self, rack, input, output):
