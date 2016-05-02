@@ -20,5 +20,6 @@ class reward:
         return max(abs((float(start.split(',')[1]) - float(end.split(',')[1])) / self.ySpeed),
                    abs((float(start.split(',')[2]) - float(end.split(',')[2])) / self.zSpeed))
 
-test = reward()
-print test.get_cycletime('0,1,0_319_S/1,15,2_189_R')
+if __name__ == '__main__':
+    test = reward()
+    print test.get_cycletime('0,1,0_319_S/1,15,2_189_R')
