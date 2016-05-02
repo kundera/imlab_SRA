@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 class action(object):
 
-    tidx = 4  # tableidx in DB
-    pidx = 1  # problemidx in DB
+    tidx = 3  # tableidx in DB
+    pidx = 3  # problemidx in DB
     testset = problemreader.ProblemWithSolutionReader(tidx, pidx)  # get test set from DB
     rs1 = testset.get_problem_with_solution().rack
     rack_size_h = testset.get_problem_with_solution().columnNum  # the number of column
@@ -188,7 +188,8 @@ class action(object):
 
                         # create s2
                         for c, item3 in enumerate(rack):
-                            if item3 == '-1' and a != c:
+                            # if item3 == '-1' and a != c:
+                            if c == b:
                                 loca3 = self.loca_calculate(c)
                                 G.add_node('%s_s2' % c, loca=loca3)
                                 G.add_edge('%s_r1' % b, '%s_s2' % c, weight=self.get_time(loca2, loca3))
@@ -208,7 +209,7 @@ class action(object):
         # nx.draw_networkx(G, arrows=True, with_labels=True)
         # plt.show()
         # print 'SR1SR2', path['start']['end'], length['start']['end']
-        return 'SR2SR1', path['start']['end'], length['start']['end']
+        return 'SR1SR2', path['start']['end'], length['start']['end']
 
     def dijk_sr2sr1(self, rs, output):
         G = nx.Graph()
@@ -237,7 +238,8 @@ class action(object):
 
                         # create s2
                         for c, item3 in enumerate(rack):
-                            if item3 == '-1' and a != c:
+                            # if item3 == '-1' and a != c:
+                            if b == c:
                                 loca3 = self.loca_calculate(c)
                                 G.add_node('%s_s2' % c, loca=loca3)
                                 G.add_edge('%s_r1' % b, '%s_s2' % c, weight=self.get_time(loca2, loca3))
@@ -263,9 +265,8 @@ if __name__ == '__main__':
     test = action()
     rs1 = test.rs1
     output = test.output
-    # print test.rs1
-    # print output_list
+
     print test.dijk_ssr1r2(rs1, output)
     print test.dijk_ssr2r1(rs1, output)
-    print test.dijk_sr2sr1(rs1, output)
     print test.dijk_sr1sr2(rs1, output)
+    print test.dijk_sr2sr1(rs1, output)
