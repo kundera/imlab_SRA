@@ -102,7 +102,9 @@ class simul(object):
         #print rs1
         #print rs2
 
-test = simul()
-a = test.rs1
-b = test.order_raw
-test.change_rs(a,b)
+
+if __name__ == '__main__':
+    test = simul()
+    a = test.rs1
+    b = test.order_raw
+    test.change_rs(a, b)

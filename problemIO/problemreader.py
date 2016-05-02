@@ -51,5 +51,6 @@ class ProblemWithSolutionReader(ProblemReader):
         con.close()
         return pws
 
-test = ProblemWithSolutionReader(5, 1)
-print test.get_problem_with_solution().NN_sol
+if __name__ == '__main__':
+    test = ProblemWithSolutionReader(5, 1)
+    print test.get_problem_with_solution().NN_sol

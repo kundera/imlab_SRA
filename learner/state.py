@@ -65,5 +65,6 @@ class state:
             result += ','
         return result[0:len(result)-1]
 
-test = state()
-print test.get_retrieval_binary('319,189,716,379', '0,1,0_319_S/1,15,2_189_R/1,15,2_716_S/1,2,5_379_R')
+if __name__ == '__main__':
+    test = state()
+    print test.get_retrieval_binary('319,189,716,379', '0,1,0_319_S/1,15,2_189_R/1,15,2_716_S/1,2,5_379_R')
