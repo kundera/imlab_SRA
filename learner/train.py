@@ -10,9 +10,9 @@ import action
 import state
 
 class train:
-    ACTIONS_COUNT = 5  # number of valid actions.
+    ACTIONS_COUNT = 4  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
-    OBSERVATION_STEPS = 500000.  # time steps to observe before training
+    OBSERVATION_STEPS = 32.  # time steps to observe before training
     EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
     INITIAL_RANDOM_ACTION_PROB = 1.0  # starting chance of an action being random
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
@@ -42,7 +42,6 @@ class train:
 
         # set the first action to do nothing
         self._last_action = np.zeros(self.ACTIONS_COUNT)
-        self._last_action[1] = 1
 
         self._last_state = None
         self._probability_of_random_action = self.INITIAL_RANDOM_ACTION_PROB
@@ -70,7 +69,7 @@ class train:
         result = [[0 for col in range(columnNum)] for row in range(floorNum)]
         for row in range(floorNum):
             for col in range(columnNum):
-                result[row][col] = rack_status[row*floorNum+col]
+                result[row][col] = float(rack_status[row*floorNum+col])
         return result
 
 
@@ -78,30 +77,63 @@ class train:
 
         cycleNum = training_data.requestLength / training_data.shuttleNum
         rack = training_data.rack
-        rack_status = change_to_two_dimension(training_data.rack, training_data.columnNum, training_data.floorNum)
-        rack_status = get_storage_binary(rack_status)
+        rack_status = self.change_to_two_dimension(training_data.rack, training_data.columnNum, training_data.floorNum)
+        rack_status = state.get_storage_binary(rack_status)
         rw = 0.0
+        rack_status = np.array(rack_status)
 
-        for i in range(cycleNum):
-            input = training_data.input.split(", ")[cycleNum:cycleNum + 2]
-            output = training_data.output.split(", ")[cycleNum:cycleNum+2]
+        # scale down game image
+        screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+
+        # first frame must be handled differently
+        self._last_state = np.stack(tuple(screen_resized for _ in range(self.STATE_FRAMES)), axis=2)
+
+        for order_idx in range(cycleNum):
+            input = training_data.input.split(", ")[order_idx * training_data.shuttleNum:order_idx * training_data.shuttleNum + training_data.shuttleNum]
+            output = training_data.output.split(", ")[order_idx * training_data.shuttleNum:order_idx * training_data.shuttleNum + training_data.shuttleNum]
+
+            self._last_action = self._choose_next_action()
+
+            for i in range(len(self._last_action)):
+                if self._last_action[i] == 1:
+                    action_index = i
+                    break
+            at = action.action()
+
+            a1, a2, a3, a4 = at.dijk_idx(rack.split(", "), training_data.columnNum, training_data.floorNum, input, output, action_index)
+
+            rw = a4
+            a = []
+            for i in range(len(a1)):
+                a.append(a1[i])
+            for i in range(len(a2)):
+                a.append(a2[i])
+            for i in range(len(a3)):
+                a.append(a3[i])
+
+            sim = Simulator.simul()
+
+            rack_array = sim.change_rs(rack, a)
+            rack = ''
+            for i in range(len(rack_array)):
+                rack += rack_array[i]+", "
+            rack = rack[:-2]
+
+
+            rack_status = self.change_to_two_dimension(rack, training_data.columnNum, training_data.floorNum)
+            rack_status = state.get_storage_binary(rack_status)
+            rack_status = np.array(rack_status)
 
             # scale down game image
             screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
 
-            # first frame must be handled differently
-            if self._last_state is None:
-                # the _last_state will contain the image data from the last self.STATE_FRAMES frames
-                self._last_state = np.stack(tuple(screen_resized for _ in range(self.STATE_FRAMES)), axis=2)
-                continue
-
-
             screen_resized = np.reshape(screen_resized,
                                                    (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
+
             current_state = np.append(screen_resized, self._last_state[:, :, 1:], axis=2)
 
             # store the transition in previous_observations
-            self._observations.append((self._last_state, self._last_action, reward.reward.get_cycletime()/reward.reward.get_maxtime(), current_state))
+            self._observations.append((self._last_state, self._last_action, rw/reward.reward().get_maxtime(training_data.columnNum, training_data.floorNum, training_data.shuttleNum), current_state))
 
             if len(self._observations) > self.MEMORY_SIZE:
                 self._observations.popleft()
@@ -136,33 +168,18 @@ class train:
             # update the old values
             self._last_state = current_state
 
-            self._last_action = self._choose_next_action()
-
             # gradually reduce the probability of a random actionself.
             if self._probability_of_random_action > self.FINAL_RANDOM_ACTION_PROB \
                     and len(self._observations) > self.OBSERVATION_STEPS:
                 self._probability_of_random_action -= \
                     (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
 
-
-            for i in len(self._last_action):
-                if self._last_action[i] == 1
-                    action_index = i
-                    break
-
-            at = action.action()
-            at.dijk(rack, training_data.columnNum, training_data.floorNum, input, output)
-
-            sim = Simulator.simul()
-            rack = sim.change_rs(rack, ['59', '68', '51', '1', [1, 0, 0], [1, 0, 1], [1, 0, 1], [1, 4, 1], 'S', 'S', 'R', 'R'])
-
-            rack_status = change_to_two_dimension(rack, training_data.columnNum, training_data.floorNum)
-            rack_status = get_storage_binary(rack_status)
+        return self._input_layer, self._output_layer
 
     @staticmethod
-    def _create_network(self):
+    def _create_network():
         # network weights
-        convolution_weights_1 = tf.Variable(tf.truncated_normal([8, 8, self.STATE_FRAMES, 32], stddev=0.01))
+        convolution_weights_1 = tf.Variable(tf.truncated_normal([8, 8, train.STATE_FRAMES, 32], stddev=0.01))
         convolution_bias_1 = tf.Variable(tf.constant(0.01, shape=[32]))
 
         convolution_weights_2 = tf.Variable(tf.truncated_normal([4, 4, 32, 64], stddev=0.01))
@@ -174,11 +191,11 @@ class train:
         feed_forward_weights_1 = tf.Variable(tf.truncated_normal([1600, 256], stddev=0.01))
         feed_forward_bias_1 = tf.Variable(tf.constant(0.01, shape=[256]))
 
-        feed_forward_weights_2 = tf.Variable(tf.truncated_normal([256, self.ACTIONS_COUNT], stddev=0.01))
-        feed_forward_bias_2 = tf.Variable(tf.constant(0.01, shape=[self.ACTIONS_COUNT]))
+        feed_forward_weights_2 = tf.Variable(tf.truncated_normal([256, train.ACTIONS_COUNT], stddev=0.01))
+        feed_forward_bias_2 = tf.Variable(tf.constant(0.01, shape=[train.ACTIONS_COUNT]))
 
-        input_layer = tf.placeholder("float", [None, self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y,
-                                               self.STATE_FRAMES])
+        input_layer = tf.placeholder("float", [None, train.RESIZED_SCREEN_X, train.RESIZED_SCREEN_Y,
+                                               train.STATE_FRAMES])
 
         hidden_convolutional_layer_1 = tf.nn.relu(
             tf.nn.conv2d(input_layer, convolution_weights_1, strides=[1, 4, 4, 1],
@@ -207,5 +224,5 @@ class train:
 
 if __name__ == '__main__':
     tr = train()
-    pr = problemreader.ProblemReader(20,1)
-    tr._train(pr.get_problem())
+    pr = problemreader.ProblemWithSolutionReader(10,1)
+    tr._train(pr.get_problem_with_solution())

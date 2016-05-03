@@ -115,7 +115,7 @@ from problemIO import problemreader
 
 class simul(object):
     #============================== used parameter =========================================
-    tidx = 3 # tableidx in DB
+    tidx = 10 # tableidx in DB
     pidx = 1 # problemidx in DB
     testset = problemreader.ProblemWithSolutionReader(tidx, pidx) # get test set from DB
     rs1 = testset.get_problem_with_solution().rack # rack status
@@ -184,7 +184,7 @@ class simul(object):
     #============================== Changing Rack Status by Action =========================================
     def change_rs(self, rs1, order_raw): # order_raw format : ['59','51','68','1',[1,0,0],[1,0,1],[1,0,1],[1,4,1],'S','R','S','R']
         rs2 = self.adjust_rs(rs1)
-        print rs2
+        #print rs2
         rack_size_h = simul.rack_size_h
         rack_size_v = simul.rack_size_v
         one_cycle_act = simul.one_cycle_act
@@ -195,7 +195,6 @@ class simul(object):
                    order_raw[action+4][2]
 
             if action % one_cycle_act == 0 : #one_cylce_act = 4
-
                 if order_raw[action+8] == 'S':
                     rs2[loca] = order_raw[action]
 
@@ -216,4 +215,5 @@ class simul(object):
 if __name__ == '__main__':
     test = simul()
     a = test.rs1
-    test.change_rs(a, ['59','68','51','1',[1,0,0],[1,0,1],[1,0,1],[1,4,1],'S','S','R','R'])
+    print test.change_rs(a, ['59','68','51','1',[1,0,0],[1,0,1],[1,0,1],[1,4,1],'S','S','R','R'])
+    print len(['59','68','51','1',[1,0,0],[1,0,1],[1,0,1],[1,4,1],'S','S','R','R'])

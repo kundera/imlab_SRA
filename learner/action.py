@@ -327,30 +327,44 @@ class action(object):
         io = input + output
 
         if min(c1,c2,c3,c4) == c1:
-            return rs,[io[0],io[1],io[2],io[3]],d1,e1
+            return [io[0],io[1],io[2],io[3]],d1,e1,c1
         elif min(c1,c2,c3,c4) == c2:
-            return rs,[io[0],io[1],io[3],io[2]],d2,e2
+            return [io[0],io[1],io[3],io[2]],d2,e2,c2
         elif min(c1,c2,c3,c4) == c3:
-            return rs,[io[0],io[2],io[1],io[3]],d3,e3
+            return [io[0],io[2],io[1],io[3]],d3,e3,c3
         elif min(c1,c2,c3,c4) == c4:
-            return rs,[io[0],io[3],io[1],io[2]],d4,e4
+            return [io[0],io[3],io[1],io[2]],d4,e4,c4
 
 
-        print action.dijk_ssr1r2(rs,size_h, size_v, output)
-        print action.dijk_ssr2r1(rs,size_h, size_v, output)
-        print action.dijk_sr1sr2(rs,size_h, size_v, output)
-        print action.dijk_sr2sr1(rs,size_h, size_v, output)
+        #print action.dijk_ssr1r2(rs,size_h, size_v, output)
+        #print action.dijk_ssr2r1(rs,size_h, size_v, output)
+        #print action.dijk_sr1sr2(rs,size_h, size_v, output)
+        #print action.dijk_sr2sr1(rs,size_h, size_v, output)
 
+    def dijk_idx(self, rs, size_h, size_v, input, output, idx):
 
+        io = input + output
 
+        if idx == 0:
+            a1, b1, c1, d1, e1 = self.dijk_ssr1r2(rs, size_h, size_v, output)
+            return [io[0], io[1], io[2], io[3]], d1, e1, c1
+        elif idx == 1:
+            a2, b2, c2, d2, e2 = self.dijk_ssr2r1(rs, size_h, size_v, output)
+            return [io[0], io[1], io[3], io[2]], d2, e2, c2
+        elif idx == 2:
+            a3, b3, c3, d3, e3 = self.dijk_sr1sr2(rs, size_h, size_v, output)
+            return [io[0], io[2], io[1], io[3]], d3, e3, c3
+        elif idx == 3:
+            a4, b4, c4, d4, e4 = self.dijk_sr2sr1(rs, size_h, size_v, output)
+            return [io[0], io[3], io[1], io[2]], d4, e4, c4
 
 
 if __name__ == '__main__':
     test = action()
-    testset = problemreader.ProblemWithSolutionReader(2, 1) # config testset index
+    testset = problemreader.ProblemWithSolutionReader(10, 1) # config testset index
     rs = testset.get_problem_with_solution().rack
     rs = test.adjust_rs(rs)
-    print rs
+    #print rs
     output = testset.get_problem_with_solution().output
     output_list = output.replace(" ", "").split(",")
     outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
@@ -361,7 +375,7 @@ if __name__ == '__main__':
     inputs = [input_list[i:i + 2] for i in range(0, len(input_list), 2)]
     inputs = inputs[0]
 
-    print inputs, outputs
+    #print inputs, outputs
 
-    print test.dijk(rs,5,3,inputs,outputs) #execute dijk function here!!!
+    print test.dijk_idx(rs,5,3,inputs,outputs, 0) #execute dijk function here!!!
 
