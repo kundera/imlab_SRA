@@ -36,11 +36,11 @@ class ProblemWithSolutionReader(ProblemReader):
     def get_problem_with_solution(self):
         con = MySQLdb.connect(self.DBAdress, self.DBID, self.DBPassward, self.DBName)
         cur = con.cursor()
-        sql = 'SELECT aisleNum, columnNum, floorNum, itemTypeNum,  shuttleNum FROM problemConfig WHERE idx = ' + str(
+        sql = 'SELECT aisleNum, columnNum, floorNum, itemTypeNum,  requestLength, shuttleNum FROM problemConfig WHERE idx = ' + str(
             self.table_idx)
         cur.execute(sql)
         row = cur.fetchone()
-        pws = problem.ProblemWithSolution(row[0], row[1], row[2], row[3], row[4])
+        pws = problem.ProblemWithSolution(row[0], row[1], row[2], row[3], row[4], row[5])
 
         sql = 'SELECT rack, input, output, NN_sol, RNN_sol FROM problemSet_c' + str(self.table_idx) + ' WHERE idx = ' + str(
             self.problem_idx)

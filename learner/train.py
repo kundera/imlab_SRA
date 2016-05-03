@@ -5,6 +5,9 @@ import random
 import cv2
 import reward
 from problemIO import problemreader
+from simulator import Simulator
+import action
+import state
 
 class train:
     ACTIONS_COUNT = 5  # number of valid actions.
@@ -62,24 +65,36 @@ class train:
         return new_action
 
 
+    def change_to_two_dimension(self, rack_status, columnNum, floorNum):
+        rack_status = rack_status.split(", ")
+        result = [[0 for col in range(columnNum)] for row in range(floorNum)]
+        for row in range(floorNum):
+            for col in range(columnNum):
+                result[row][col] = rack_status[row*floorNum+col]
+        return result
+
+
     def _train(self, training_data):
 
         cycleNum = training_data.requestLength / training_data.shuttleNum
-        rack_status = training_data.rack
+        rack = training_data.rack
+        rack_status = change_to_two_dimension(training_data.rack, training_data.columnNum, training_data.floorNum)
+        rack_status = get_storage_binary(rack_status)
+        rw = 0.0
 
         for i in range(cycleNum):
+            input = training_data.input.split(", ")[cycleNum:cycleNum + 2]
             output = training_data.output.split(", ")[cycleNum:cycleNum+2]
 
-
-
             # scale down game image
-            screen_resized = cv2.resize(screen_array, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+            screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
 
             # first frame must be handled differently
             if self._last_state is None:
                 # the _last_state will contain the image data from the last self.STATE_FRAMES frames
                 self._last_state = np.stack(tuple(screen_resized for _ in range(self.STATE_FRAMES)), axis=2)
                 continue
+
 
             screen_resized = np.reshape(screen_resized,
                                                    (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
@@ -128,6 +143,21 @@ class train:
                     and len(self._observations) > self.OBSERVATION_STEPS:
                 self._probability_of_random_action -= \
                     (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
+
+
+            for i in len(self._last_action):
+                if self._last_action[i] == 1
+                    action_index = i
+                    break
+
+            at = action.action()
+            at.dijk(rack, training_data.columnNum, training_data.floorNum, input, output)
+
+            sim = Simulator.simul()
+            rack = sim.change_rs(rack, ['59', '68', '51', '1', [1, 0, 0], [1, 0, 1], [1, 0, 1], [1, 4, 1], 'S', 'S', 'R', 'R'])
+
+            rack_status = change_to_two_dimension(rack, training_data.columnNum, training_data.floorNum)
+            rack_status = get_storage_binary(rack_status)
 
     @staticmethod
     def _create_network(self):
