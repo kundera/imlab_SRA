@@ -65,8 +65,12 @@ class train:
     def _train(self, training_data):
 
         cycleNum = training_data.requestLength / training_data.shuttleNum
+        rack_status = training_data.rack
 
         for i in range(cycleNum):
+            output = training_data.output.split(", ")[cycleNum:cycleNum+2]
+
+
 
             # scale down game image
             screen_resized = cv2.resize(screen_array, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))

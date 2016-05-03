@@ -1,5 +1,13 @@
 class state:
 
+    def change_to_two_dimension(self, rack_status, columnNum, floorNum):
+        rack_status = rack_status.split(", ")
+        result = [[0 for col in range(columnNum)] for row in range(floorNum)]
+        for row in range(floorNum):
+            for col in range(columnNum):
+                result[row][col] = rack_status[row*floorNum+col]
+        return result
+
     def get_storage_binary(self, rack_status):
         result = ''
         for i in rack_status.split(','):
