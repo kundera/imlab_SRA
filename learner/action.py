@@ -19,19 +19,19 @@ class action(object):
 
 
 
-    def loca_calculate(self, index):
+    def loca_calculate(self,index,size_h,size_v):
 
         loca = []
 
-        if math.floor(index / (action.rack_size_h * action.rack_size_v)) == 0:
-            loca.append(int(math.floor(index / (action.rack_size_h * action.rack_size_v))))
-            loca.append(int(math.floor(index / action.rack_size_v)))
-            loca.append(int(index % action.rack_size_v))
+        if math.floor(index / (size_h * size_v)) == 0:
+            loca.append(int(math.floor(index / (size_h * size_v))))
+            loca.append(int(math.floor(index / size_v)))
+            loca.append(int(index % size_v))
 
         else:
-            loca.append(int(math.floor(index / (action.rack_size_h * action.rack_size_v))))
-            loca.append(int(math.floor((index - action.rack_size_h * action.rack_size_v) / action.rack_size_v)))
-            loca.append(int((index - (action.rack_size_h * action.rack_size_v)) % action.rack_size_v))
+            loca.append(int(math.floor(index / (size_h * size_v))))
+            loca.append(int(math.floor((index - size_h * size_v) / size_v)))
+            loca.append(int((index - (size_h * size_v)) % size_v))
 
         return loca
 
@@ -45,11 +45,17 @@ class action(object):
 
         return rs1
 
-    def dijk_ssr1r2(self, rs, outputs):
+    def adjust_list(self, lst):
+        for i,j in enumerate(lst):
+            for k in range(len(j)):
+                lst[i][k] = int(lst[i][k])
+        return lst
+
+    def dijk_ssr1r2(self, rack, size_h, size_v, outputs):# ex :outputs = ['10','18']
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0])
         G.add_node('end', loca=[0, 0, 0])
-        rack = self.adjust_rs(rs)
+        #rack = self.adjust_rs(rs)
         #output_list = output.replace(" ", "").split(",")
         #outputs = [output_list[i:i+2] for i in range(0, len(output_list), 2)]
         #outputs = outputs[0]
@@ -59,7 +65,7 @@ class action(object):
         # create first 'S'
         for a, item1 in enumerate(rack):
             if item1 == '-1':
-                loca1 = self.loca_calculate(a)
+                loca1 = self.loca_calculate(a, size_h, size_v)
                 # print loca1
                 G.add_node('%s_s1' % loca1, loca=loca1)
                 G.add_edge('start', '%s_s1' % loca1, weight=self.get_time(init_loca,loca1))
@@ -67,7 +73,7 @@ class action(object):
                 # create second 'S'
                 for b, item2 in enumerate(rack):
                     if item2 == '-1':
-                        loca2 = self.loca_calculate(b)
+                        loca2 = self.loca_calculate(b, size_h, size_v)
                         G.add_node('%s_s2' % loca2, loca=loca2)
                         G.add_edge('%s_s1' % loca1, '%s_s2' % loca2, weight=self.get_time(loca1,loca2))
 
@@ -80,13 +86,13 @@ class action(object):
 
                         # create 'R1R2'
                         for c, item3 in enumerate(rack):
-                            loca3 = self.loca_calculate(c)
+                            loca3 = self.loca_calculate(c, size_h, size_v)
                             if item3 == outputs[0]:
                                 G.add_node('%s_r1' % loca3, loca=loca3)
                                 G.add_edge('%s_s2' % loca2, '%s_r1' % loca3, weight=self.get_time(loca2, loca3))
 
                                 for d, item4 in enumerate(rack):
-                                    loca4 = self.loca_calculate(d)
+                                    loca4 = self.loca_calculate(d, size_h, size_v)
                                     if item4 == outputs[1]:
                                         G.add_node('%s_r2' % loca4, loca=loca4)
                                         G.add_edge('%s_r1' % loca3, '%s_r2' % loca4, weight=self.get_time(loca3, loca4))
@@ -105,15 +111,24 @@ class action(object):
 
         path = nx.all_pairs_dijkstra_path(G)
         length = nx.all_pairs_dijkstra_path_length(G)
+        sol_of_loca = path['start']['end'][1][:-3] + "/" + path['start']['end'][2][:-3] + "/" \
+                      + path['start']['end'][3][:-3] + "/" + path['start']['end'][4][:-3]
+        sol_of_loca = sol_of_loca.replace("[","")
+        sol_of_loca = sol_of_loca.replace("]","")
+        sol_of_loca = sol_of_loca.replace(" ","")
+        list_sol_of_loca = sol_of_loca.split("/")
+        list_sol_of_loca = [x.split(',') for x in list_sol_of_loca]
+        list_sol_of_loca = self.adjust_list(list_sol_of_loca)
+        io = ['S', 'S', 'R', 'R']
         # nx.draw_networkx(G ,arrows=True,with_labels=True)
         # plt.show()
-        return 'SSR1R2', path['start']['end'], length['start']['end']
+        return 'SSR1R2', path['start']['end'], length['start']['end'], list_sol_of_loca, io
 
-    def dijk_ssr2r1(self, rs, outputs):  # ex :output = ['10','18]
+    def dijk_ssr2r1(self, rack, size_h, size_v, outputs):  # ex :outputs = ['10','18']
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0])
         G.add_node('end', loca=[0, 0, 0])
-        rack = self.adjust_rs(rs)
+        #rack = self.adjust_rs(rs)
         #output_list = output.replace(" ", "").split(",")
         #outputs = [output_list[i:i+2] for i in range(0, len(output_list), 2)]
         #outputs = outputs[0]
@@ -123,7 +138,7 @@ class action(object):
         # create first 'S'
         for a, item1 in enumerate(rack):
             if item1 == '-1':
-                loca1 = self.loca_calculate(a)
+                loca1 = self.loca_calculate(a,size_h, size_v)
                 # print loca1
                 G.add_node('%s_s1' % loca1, loca=loca1)
                 G.add_edge('start', '%s_s1' % loca1, weight=self.get_time(init_loca, loca1))
@@ -131,19 +146,19 @@ class action(object):
                 # create second 'S'
                 for b, item2 in enumerate(rack):
                     if item2 == '-1' and a != b:
-                        loca2 = self.loca_calculate(b)
+                        loca2 = self.loca_calculate(b,size_h, size_v)
                         G.add_node('%s_s2' % loca2, loca=loca2)
                         G.add_edge('%s_s1' % loca1, '%s_s2' % loca2, weight=self.get_time(loca1, loca2))
 
                         # create 'R2R1'
                         for c, item3 in enumerate(rack):
-                            loca3 = self.loca_calculate(c)
+                            loca3 = self.loca_calculate(c,size_h, size_v)
                             if item3 == outputs[1]:
                                 G.add_node('%s_r2' % loca3, loca=loca3)
                                 G.add_edge('%s_s2' % loca2, '%s_r2' % loca3, weight=self.get_time(loca2, loca3))
 
                                 for d, item4 in enumerate(rack):
-                                    loca4 = self.loca_calculate(d)
+                                    loca4 = self.loca_calculate(d,size_h, size_v)
                                     if item4 == outputs[0] and c != d:
                                         G.add_node('%s_r1' % loca4, loca=loca4)
                                         G.add_edge('%s_r2' % loca3, '%s_r1' % loca4, weight=self.get_time(loca3, loca4))
@@ -153,16 +168,25 @@ class action(object):
 
         path = nx.all_pairs_dijkstra_path(G)
         length = nx.all_pairs_dijkstra_path_length(G)
+        sol_of_loca = path['start']['end'][1][:-3] + "/" + path['start']['end'][2][:-3] + "/" \
+                      + path['start']['end'][3][:-3] + "/" + path['start']['end'][4][:-3]
+        sol_of_loca = sol_of_loca.replace("[","")
+        sol_of_loca = sol_of_loca.replace("]","")
+        sol_of_loca = sol_of_loca.replace(" ","")
+        list_sol_of_loca = sol_of_loca.split("/")
+        list_sol_of_loca = [x.split(',') for x in list_sol_of_loca]
+        list_sol_of_loca = self.adjust_list(list_sol_of_loca)
+        io= ['S', 'S', 'R', 'R']
         # nx.draw_networkx(G ,arrows=True,with_labels=True)
         # plt.show()
         # print 'SSR2R1', path['start']['end'] , length['start']['end']
-        return 'SSR2R1', path['start']['end'], length['start']['end']
+        return 'SSR2R1', path['start']['end'], length['start']['end'],list_sol_of_loca,io
 
-    def dijk_sr1sr2(self, rs, outputs):
+    def dijk_sr1sr2(self, rack,size_h, size_v, outputs): # ex :outputs = ['10','18']
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0])
         G.add_node('end', loca=[0, 0, 0])
-        rack = self.adjust_rs(rs)
+        #rack = self.adjust_rs(rs)
         #output_list = output.replace(" ", "").split(",")
         #outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
         #outputs = outputs[0]
@@ -172,22 +196,22 @@ class action(object):
         #  create first 'S'
         for a, item1 in enumerate(rack):
             if item1 == '-1':
-                loca1 = self.loca_calculate(a)
+                loca1 = self.loca_calculate(a,size_h, size_v)
                 G.add_node('%s_s1' % loca1, loca=loca1)
                 G.add_edge('start', '%s_s1' % loca1, weight=self.get_time(init_loca, loca1))
 
                 # create r1
                 for b, item2 in enumerate(rack):
-                    loca2 = self.loca_calculate(b)
+                    loca2 = self.loca_calculate(b,size_h, size_v)
                     if item2 == outputs[0]:
                         G.add_node('%s_r1' % loca2, loca=loca2)
                         G.add_edge('%s_s1' % loca1, '%s_r1' % loca2, weight=self.get_time(loca1, loca2))
 
                         # create s2
-                        loca3 = self.loca_calculate(b)
+                        loca3 = self.loca_calculate(b,size_h, size_v)
                         for c, item3 in enumerate(rack):
                             # check the opposite side is empty
-                            loca5 = self.loca_calculate(c)
+                            loca5 = self.loca_calculate(c,size_h, size_v)
                             if c != b and loca5[0] == '-1' and loca3[1] == loca5[1] and loca3[2] == loca5[2]:
                                 loca3 = loca5
                                 G.add_node('%s_s2' % loca3, loca=loca3)
@@ -198,7 +222,7 @@ class action(object):
 
                             # create r2
                             for d, item4 in enumerate(rack):
-                                loca4 = self.loca_calculate(d)
+                                loca4 = self.loca_calculate(d,size_h, size_v)
                                 if item4 == outputs[1] and b != d:
                                     G.add_node('%s_r2' % loca4, loca=loca4)
                                     G.add_edge('%s_s2' % loca3, '%s_r2' % loca4, weight=self.get_time(loca3, loca4))
@@ -208,16 +232,25 @@ class action(object):
 
         path = nx.all_pairs_dijkstra_path(G)
         length = nx.all_pairs_dijkstra_path_length(G)
+        sol_of_loca = path['start']['end'][1][:-3] + "/" + path['start']['end'][2][:-3] + "/" \
+                      + path['start']['end'][3][:-3]+ "/" + path['start']['end'][4][:-3]
+        sol_of_loca = sol_of_loca.replace("[","")
+        sol_of_loca = sol_of_loca.replace("]","")
+        sol_of_loca = sol_of_loca.replace(" ","")
+        list_sol_of_loca = sol_of_loca.split("/")
+        list_sol_of_loca = [x.split(',') for x in list_sol_of_loca]
+        list_sol_of_loca = self.adjust_list(list_sol_of_loca)
+        io = ['S', 'R', 'S', 'R']
         # nx.draw_networkx(G, arrows=True, with_labels=True)
         # plt.show()
         # print 'SR1SR2', path['start']['end'], length['start']['end']
-        return 'SR1SR2', path['start']['end'], length['start']['end']
+        return 'SR1SR2', path['start']['end'], length['start']['end'], list_sol_of_loca,io
 
-    def dijk_sr2sr1(self, rs, outputs):
+    def dijk_sr2sr1(self, rack,size_h, size_v, outputs):# ex :outputs = ['10','18']
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0])
         G.add_node('end', loca=[0, 0, 0])
-        rack = self.adjust_rs(rs)
+        #rack = self.adjust_rs(rs)
         #output_list = output.replace(" ", "").split(",")
         #outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
         #outputs = outputs[0]
@@ -227,21 +260,21 @@ class action(object):
         #  create first 'S'
         for a, item1 in enumerate(rack):
             if item1 == '-1':
-                loca1 = self.loca_calculate(a)
+                loca1 = self.loca_calculate(a,size_h, size_v)
                 G.add_node('%s_s1' % loca1, loca=loca1)
                 G.add_edge('start', '%s_s1' % loca1, weight=self.get_time(init_loca, loca1))
 
                 # create r1
                 for b, item2 in enumerate(rack):
-                    loca2 = self.loca_calculate(b)
+                    loca2 = self.loca_calculate(b,size_h, size_v)
                     if item2 == outputs[1]:
                         G.add_node('%s_r1' % loca2, loca=loca2)
                         G.add_edge('%s_s1' % loca1, '%s_r1' % loca2, weight=self.get_time(loca1, loca2))
 
                         # create s2
-                        loca3 = self.loca_calculate(b)
+                        loca3 = self.loca_calculate(b,size_h, size_v)
                         for c, item5 in enumerate(rack):
-                            loca5 = self.loca_calculate(c)
+                            loca5 = self.loca_calculate(c,size_h, size_v)
                             # check the opposite side is empty
                             if c != b and loca5[0] == '-1' and loca3[1] == loca5[1] and loca3[2] == loca5[2]:
                                 loca3 = loca5
@@ -253,7 +286,7 @@ class action(object):
 
                             # create r1
                             for d, item4 in enumerate(rack):
-                                loca4 = self.loca_calculate(d)
+                                loca4 = self.loca_calculate(d,size_h, size_v)
                                 if item4 == outputs[0] and b != d:
                                     G.add_node('%s_r2' % loca4, loca=loca4)
                                     G.add_edge('%s_s2' % loca3, '%s_r2' % loca4, weight=self.get_time(loca3, loca4))
@@ -263,25 +296,50 @@ class action(object):
 
         path = nx.all_pairs_dijkstra_path(G)
         length = nx.all_pairs_dijkstra_path_length(G)
+        sol_of_loca = path['start']['end'][1][:-3] + "/" + path['start']['end'][2][:-3] + "/" \
+                      + path['start']['end'][3][:-3] + "/" + path['start']['end'][4][:-3]
+        sol_of_loca = sol_of_loca.replace("[","")
+        sol_of_loca = sol_of_loca.replace("]","")
+        sol_of_loca = sol_of_loca.replace(" ","")
+        list_sol_of_loca = sol_of_loca.split("/")
+        list_sol_of_loca = [x.split(',') for x in list_sol_of_loca]
+        list_sol_of_loca = self.adjust_list(list_sol_of_loca)
+        io = ['S','R','S','R']
         # nx.draw_networkx(G, arrows=True, with_labels=True)
         # plt.show()
         # print 'SR2SR1', path['start']['end'], length['start']['end']
-        return 'SR2SR1', path['start']['end'], length['start']['end']
+        return 'SR2SR1', path['start']['end'], length['start']['end'], list_sol_of_loca, io
 
-    def dijk(self,tidx,pidx,output): # concatenate 4 solutions // output example : ['51', '1'] = 1 cycle outputs
-        action.tidx = tidx
-        action.pidx = pidx
-        dijk_test = problemreader.ProblemWithSolutionReader(tidx, pidx)
+    def dijk(self,rs,size_h,size_v,input,output): # concatenate 4 solutions // input/output example : ['51', '1'] = 1 cycle outputs
+        #action.tidx = tidx
+        #action.pidx = pidx
+        #dijk_test = problemreader.ProblemWithSolutionReader(tidx, pidx)
 
-        action.rs1 = dijk_test.get_problem_with_solution().rack
-        action.rack_size_h = dijk_test.get_problem_with_solution().columnNum  # the number of column
-        action.rack_size_v = dijk_test.get_problem_with_solution().floorNum  # the number of floor
-        action.output = dijk_test.get_problem_with_solution().output
+        #action.rs1 = dijk_test.get_problem_with_solution().rack
+        #action.rack_size_h = dijk_test.get_problem_with_solution().columnNum  # the number of column
+        #action.rack_size_v = dijk_test.get_problem_with_solution().floorNum  # the number of floor
+        #action.output = dijk_test.get_problem_with_solution().output
 
-        print test.dijk_ssr1r2(action.rs1, output)
-        print test.dijk_ssr2r1(action.rs1, output)
-        print test.dijk_sr1sr2(action.rs1, output)
-        print test.dijk_sr2sr1(action.rs1, output)
+        a1,b1,c1,d1,e1 = self.dijk_ssr1r2(rs,size_h, size_v, output)
+        a2,b2,c2,d2,e2 = self.dijk_ssr2r1(rs,size_h, size_v, output)
+        a3,b3,c3,d3,e3 = self.dijk_sr1sr2(rs,size_h, size_v, output)
+        a4,b4,c4,d4,e4 = self.dijk_sr2sr1(rs,size_h, size_v, output)
+        io = input + output
+
+        if min(c1,c2,c3,c4) == c1:
+            return rs,[io[0],io[1],io[2],io[3]],d1,e1
+        elif min(c1,c2,c3,c4) == c2:
+            return rs,[io[0],io[1],io[3],io[2]],d2,e2
+        elif min(c1,c2,c3,c4) == c3:
+            return rs,[io[0],io[2],io[1],io[3]],d3,e3
+        elif min(c1,c2,c3,c4) == c4:
+            return rs,[io[0],io[3],io[1],io[2]],d4,e4
+
+
+        print action.dijk_ssr1r2(rs,size_h, size_v, output)
+        print action.dijk_ssr2r1(rs,size_h, size_v, output)
+        print action.dijk_sr1sr2(rs,size_h, size_v, output)
+        print action.dijk_sr2sr1(rs,size_h, size_v, output)
 
 
 
@@ -289,13 +347,21 @@ class action(object):
 
 if __name__ == '__main__':
     test = action()
-    testset = problemreader.ProblemWithSolutionReader(3, 1) # config testset index
-
+    testset = problemreader.ProblemWithSolutionReader(2, 1) # config testset index
+    rs = testset.get_problem_with_solution().rack
+    rs = test.adjust_rs(rs)
+    print rs
     output = testset.get_problem_with_solution().output
     output_list = output.replace(" ", "").split(",")
     outputs = [output_list[i:i + 2] for i in range(0, len(output_list), 2)]
     outputs = outputs[0]
-    print outputs
 
-    test.dijk(3,1,outputs) #execute dijk function here!!!
+    input = testset.get_problem_with_solution().input
+    input_list = input.replace(" ", "").split(",")
+    inputs = [input_list[i:i + 2] for i in range(0, len(input_list), 2)]
+    inputs = inputs[0]
+
+    print inputs, outputs
+
+    print test.dijk(rs,5,3,inputs,outputs) #execute dijk function here!!!
 
