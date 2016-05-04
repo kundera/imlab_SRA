@@ -5,12 +5,12 @@ import random
 import cv2
 import reward
 from problemIO import problemreader
-from simulator import Simulator
+from simulator import simulator
 import action
 import state
 import train
 
-class test:
+class test(object):
     ACTIONS_COUNT = 4  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
     OBSERVATION_STEPS = 32.  # time steps to observe before test
@@ -102,7 +102,7 @@ class test:
             for i in range(len(a3)):
                 a.append(a3[i])
 
-            sim = Simulator.simul()
+            sim = simulator.simul()
 
             rack_array = sim.change_rs(rack, a)
             rack = ''

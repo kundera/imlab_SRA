@@ -1,6 +1,5 @@
 from problemIO import problemreader
 
-
 class simul(object):
     #============================== used parameter =========================================
     tidx = 6 # tableidx in DB

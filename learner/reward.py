@@ -1,4 +1,4 @@
-class reward:
+class reward(object):
     ySpeed = 2.5
     zSpeed = 0.6666667
 

@@ -1,4 +1,4 @@
-class Problem:
+class Problem(object):
 
     def __init__(self, aisleNum, columnNum, floorNum, itemTypeNum, requestLength, shuttleNum):
         self.aisleNum = aisleNum
