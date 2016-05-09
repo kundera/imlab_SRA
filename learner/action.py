@@ -403,7 +403,6 @@ class action(object):
             io = [io[0],io[2],io[1],io[3]]
             sol = solution.solution(io,d3,e3)
             cycletime = c3
-            print sol.type
             return sol, cycletime
         elif min(c1,c2,c3,c4) == c4:
             io = [io[0],io[3],io[1],io[2]]
