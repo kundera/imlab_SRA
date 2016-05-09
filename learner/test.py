@@ -132,7 +132,5 @@ class test(object):
 
 if __name__ == '__main__':
     tr = train.train()
-    pr = problemreader.ProblemWithSolutionReader(10,1)
-    te = test(tr._train(pr.get_problem_with_solution()))
-    pr = problemreader.ProblemWithSolutionReader(11,1)
-    print te._test(pr.get_problem_with_solution())
+    pr = problemreader.ProblemReader(10)
+    te = test(tr._train(pr.get_problems(10)))

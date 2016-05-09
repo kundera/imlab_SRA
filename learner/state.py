@@ -1,5 +1,5 @@
 def get_storage_binary(rack_status):
-    for i in rack_status:
+    for i in range(len(rack_status)):
         if rack_status[i] == -1:
             rack_status[i] = 0.0
         else:

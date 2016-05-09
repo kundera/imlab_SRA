@@ -50,11 +50,7 @@ class train(object):
 
 
     def _train(self, training_data):
-
         for problem_set in training_data:
-
-            rwd = 0.0
-
             sht = problem_set.shuttleNum
             clm = problem_set.columnNum
             flr = problem_set.floorNum
@@ -81,45 +77,31 @@ class train(object):
 
                 for i in range(len(self._last_action)):
                     if self._last_action[i] == 1:
-                        action_index = i
+                        action_chosen = i
                         break
 
                 at = action.action()
 
-                a1, a2, a3, a4 = at.dijk_idx(rack, clm, flr, input, output, action_index)
-
-                rwd = a4
-                a = []
-                for i in range(len(a1)):
-                    a.append(a1[i])
-                for i in range(len(a2)):
-                    a.append(a2[i])
-                for i in range(len(a3)):
-                    a.append(a3[i])
+                solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, action_chosen)
 
                 sim = simulator.simul()
 
-                rack_array = sim.change_rs(rack, a)
-                rack = ''
-                for i in range(len(rack_array)):
-                    rack += rack_array[i]+", "
-                rack = rack[:-2]
+                rack = sim.change_rs(rack, clm, flr, sol)
 
-
-                rack_status = self.change_to_two_dimension(rack, training_data.columnNum, training_data.floorNum)
-                rack_status = state.get_storage_binary(rack_status)
-                rack_status = np.array(rack_status)
+                rack_resized = state.get_storage_binary(rack)
+                rack_resized = self.change_to_two_dimension(rack_resized, clm, flr)
+                rack_resized = np.array(rack_resized)
 
                 # scale down game image
-                screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+                rack_resized = cv2.resize(rack_resized, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
 
-                screen_resized = np.reshape(screen_resized,
+                rack_resized = np.reshape(rack_resized,
                                                        (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
 
-                current_state = np.append(screen_resized, self._last_state[:, :, 1:], axis=2)
+                current_state = np.append(rack_resized, self._last_state[:, :, 1:], axis=2)
 
                 # store the transition in previous_observations
-                self._observations.append((self._last_state, self._last_action, rwd/reward.reward().get_maxtime(training_data.columnNum, training_data.floorNum, training_data.shuttleNum), current_state))
+                self._observations.append((self._last_state, self._last_action, cycletime/reward.reward().get_maxtime(clm, flr, sht), current_state))
 
                 if len(self._observations) > self.MEMORY_SIZE:
                     self._observations.popleft()
@@ -235,5 +217,4 @@ class train(object):
 if __name__ == '__main__':
     tr = train()
     pr = problemreader.ProblemReader(20)
-    for i in pr.get_problems(3):
-        tr._train(pr.get_problems(3))
+    tr._train(pr.get_problems(3))
