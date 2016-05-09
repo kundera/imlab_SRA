@@ -27,8 +27,8 @@ class ProblemReader(object):
         cur.execute(sql)
         #for i in range(cur.rowcount):
         row = cur.fetchone()
-        ra = rack.rack(int(row[0].split(", ")), column, floor)
-        p.set_problem(ra, int(row[1].split(", ")), int(row[2].split(", ")))
+        ra = rack.rack(map(int, row[0].split(", ")), column, floor)
+        p.set_problem(ra, map(int, row[1].split(", ")), map(int, row[2].split(", ")))
         con.close()
         return p
 
@@ -82,3 +82,4 @@ if __name__ == '__main__':
     test = ProblemReader(20)
     for i in test.get_problems(3):
         print i.rack.status
+    test.get_problem(1)

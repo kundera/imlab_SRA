@@ -49,30 +49,6 @@ class train(object):
         self._session.run(tf.initialize_all_variables())
 
 
-    def _choose_next_action(self):
-        new_action = np.zeros([self.ACTIONS_COUNT])
-
-        if random.random() <= self._probability_of_random_action:
-            # choose an action randomly
-            action_index = random.randrange(self.ACTIONS_COUNT)
-        else:
-            # choose an action given our last state
-            readout_t = self._session.run(self._output_layer, feed_dict={self._input_layer: [self._last_state]})[0]
-            action_index = np.argmax(readout_t)
-
-        new_action[action_index] = 1
-        return new_action
-
-
-    def change_to_two_dimension(self, rack_status, columnNum, floorNum):
-        rack_status = rack_status.split(", ")
-        result = [[0 for col in range(columnNum)] for row in range(floorNum)]
-        for row in range(floorNum):
-            for col in range(columnNum):
-                result[row][col] = float(rack_status[row*floorNum+col])
-        return result
-
-
     def _train(self, training_data):
 
         cycleNum = training_data.requestLength / training_data.shuttleNum
@@ -176,6 +152,31 @@ class train(object):
 
         return self._input_layer, self._output_layer
 
+
+    def _choose_next_action(self):
+        new_action = np.zeros([self.ACTIONS_COUNT])
+
+        if random.random() <= self._probability_of_random_action:
+            # choose an action randomly
+            action_index = random.randrange(self.ACTIONS_COUNT)
+        else:
+            # choose an action given our last state
+            readout_t = self._session.run(self._output_layer, feed_dict={self._input_layer: [self._last_state]})[0]
+            action_index = np.argmax(readout_t)
+
+        new_action[action_index] = 1
+        return new_action
+
+
+    def change_to_two_dimension(self, rack_status, columnNum, floorNum):
+        rack_status = rack_status.split(", ")
+        result = [[0 for col in range(columnNum)] for row in range(floorNum)]
+        for row in range(floorNum):
+            for col in range(columnNum):
+                result[row][col] = float(rack_status[row * floorNum + col])
+        return result
+
+
     @staticmethod
     def _create_network():
         # network weights
@@ -224,5 +225,6 @@ class train(object):
 
 if __name__ == '__main__':
     tr = train()
-    pr = problemreader.ProblemWithSolutionReader(10,1)
-    tr._train(pr.get_problem_with_solution())
+    pr = problemreader.ProblemReader(20)
+    for i in pr.get_problems(3):
+        tr._train(pr.get_problems(3))
