@@ -5,7 +5,7 @@ import random
 import cv2
 import reward
 from problemIO import problemreader
-from simulator import simulator
+from simulator import nextstate
 import action
 import state
 
@@ -84,9 +84,9 @@ class train(object):
 
                 solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, action_chosen)
 
-                sim = simulator.simul()
+                sim = nextstate.simul()
 
-                rack = sim.change_rs(rack, clm, flr, sol)
+                rack = sim.change_rs(rack, clm, flr, solution)
 
                 rack_resized = state.get_storage_binary(rack)
                 rack_resized = self.change_to_two_dimension(rack_resized, clm, flr)
