@@ -1,10 +1,9 @@
 def get_storage_binary(rack_status):
-    for row in range(len(rack_status)):
-        for col in range(len(rack_status[0])):
-            if rack_status[row][col] == -1.0:
-                rack_status[row][col] = 0.0
-            else:
-                rack_status[row][col] = 1.0
+    for i in rack_status:
+        if rack_status[i] == -1:
+            rack_status[i] = 0.0
+        else:
+            rack_status[i] = 1.0
     return rack_status
 
 def get_storage_ternary(rack_status, order):

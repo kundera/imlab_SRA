@@ -51,106 +51,116 @@ class train(object):
 
     def _train(self, training_data):
 
-        cycleNum = training_data.requestLength / training_data.shuttleNum
-        rack = training_data.rack
-        rack_status = self.change_to_two_dimension(training_data.rack, training_data.columnNum, training_data.floorNum)
-        rack_status = state.get_storage_binary(rack_status)
-        rw = 0.0
-        rack_status = np.array(rack_status)
+        for problem_set in training_data:
 
-        # scale down game image
-        screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+            rwd = 0.0
 
-        # first frame must be handled differently
-        self._last_state = np.stack(tuple(screen_resized for _ in range(self.STATE_FRAMES)), axis=2)
+            sht = problem_set.shuttleNum
+            clm = problem_set.columnNum
+            flr = problem_set.floorNum
 
-        for order_idx in range(cycleNum):
-            input = training_data.input.split(", ")[order_idx * training_data.shuttleNum:order_idx * training_data.shuttleNum + training_data.shuttleNum]
-            output = training_data.output.split(", ")[order_idx * training_data.shuttleNum:order_idx * training_data.shuttleNum + training_data.shuttleNum]
+            rack = problem_set.rack.status
 
-            self._last_action = self._choose_next_action()
-
-            for i in range(len(self._last_action)):
-                if self._last_action[i] == 1:
-                    action_index = i
-                    break
-            at = action.action()
-
-            a1, a2, a3, a4 = at.dijk_idx(rack.split(", "), training_data.columnNum, training_data.floorNum, input, output, action_index)
-
-            rw = a4
-            a = []
-            for i in range(len(a1)):
-                a.append(a1[i])
-            for i in range(len(a2)):
-                a.append(a2[i])
-            for i in range(len(a3)):
-                a.append(a3[i])
-
-            sim = simulator.simul()
-
-            rack_array = sim.change_rs(rack, a)
-            rack = ''
-            for i in range(len(rack_array)):
-                rack += rack_array[i]+", "
-            rack = rack[:-2]
-
-
-            rack_status = self.change_to_two_dimension(rack, training_data.columnNum, training_data.floorNum)
-            rack_status = state.get_storage_binary(rack_status)
-            rack_status = np.array(rack_status)
+            rack_resized = state.get_storage_binary(rack)
+            rack_resized = self.change_to_two_dimension(rack_resized, clm, flr)
+            rack_resized = np.array(rack_resized)
 
             # scale down game image
-            screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+            rack_resized = cv2.resize(rack_resized, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
 
-            screen_resized = np.reshape(screen_resized,
-                                                   (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
+            # first frame must be handled differently
+            self._last_state = np.stack(tuple(rack_resized for _ in range(self.STATE_FRAMES)), axis=2)
 
-            current_state = np.append(screen_resized, self._last_state[:, :, 1:], axis=2)
+            cycleNum = problem_set.requestLength / sht
 
-            # store the transition in previous_observations
-            self._observations.append((self._last_state, self._last_action, rw/reward.reward().get_maxtime(training_data.columnNum, training_data.floorNum, training_data.shuttleNum), current_state))
+            for order_idx in range(cycleNum):
+                input = problem_set.input[order_idx * sht:order_idx * sht + sht]
+                output = problem_set.output[order_idx * sht:order_idx * sht + sht]
 
-            if len(self._observations) > self.MEMORY_SIZE:
-                self._observations.popleft()
+                self._last_action = self._choose_next_action()
 
-            # only train if done observing
-            if len(self._observations) > self.OBSERVATION_STEPS:
-                # sample a mini_batch to train on
-                mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
-                # get the batch variables
-                previous_states = [d[self.OBS_LAST_STATE_INDEX] for d in mini_batch]
-                actions = [d[self.OBS_ACTION_INDEX] for d in mini_batch]
-                rewards = [d[self.OBS_REWARD_INDEX] for d in mini_batch]
-                current_states = [d[self.OBS_CURRENT_STATE_INDEX] for d in mini_batch]
-                agents_expected_reward = []
-                # this gives us the agents expected reward for each action we might
-                agents_reward_per_action = self._session.run(self._output_layer,
-                                                             feed_dict={self._input_layer: current_states})
-                for i in range(len(mini_batch)):
-                    if mini_batch[i][self.OBS_TERMINAL_INDEX]:
-                        # this was a terminal frame so need so scale future reward...
-                        agents_expected_reward.append(rewards[i])
-                    else:
-                        agents_expected_reward.append(
-                            rewards[i] + self.FUTURE_REWARD_DISCOUNT * np.max(agents_reward_per_action[i]))
+                for i in range(len(self._last_action)):
+                    if self._last_action[i] == 1:
+                        action_index = i
+                        break
 
-                # learn that these actions in these states lead to this reward
-                self._session.run(self._train_operation, feed_dict={
-                    self._input_layer: previous_states,
-                    self._action: actions,
-                    self._target: agents_expected_reward})
+                at = action.action()
 
-            # update the old values
-            self._last_state = current_state
+                a1, a2, a3, a4 = at.dijk_idx(rack, clm, flr, input, output, action_index)
 
-            # gradually reduce the probability of a random actionself.
-            if self._probability_of_random_action > self.FINAL_RANDOM_ACTION_PROB \
-                    and len(self._observations) > self.OBSERVATION_STEPS:
-                self._probability_of_random_action -= \
-                    (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
+                rwd = a4
+                a = []
+                for i in range(len(a1)):
+                    a.append(a1[i])
+                for i in range(len(a2)):
+                    a.append(a2[i])
+                for i in range(len(a3)):
+                    a.append(a3[i])
 
-        return self._input_layer, self._output_layer
+                sim = simulator.simul()
+
+                rack_array = sim.change_rs(rack, a)
+                rack = ''
+                for i in range(len(rack_array)):
+                    rack += rack_array[i]+", "
+                rack = rack[:-2]
+
+
+                rack_status = self.change_to_two_dimension(rack, training_data.columnNum, training_data.floorNum)
+                rack_status = state.get_storage_binary(rack_status)
+                rack_status = np.array(rack_status)
+
+                # scale down game image
+                screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+
+                screen_resized = np.reshape(screen_resized,
+                                                       (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
+
+                current_state = np.append(screen_resized, self._last_state[:, :, 1:], axis=2)
+
+                # store the transition in previous_observations
+                self._observations.append((self._last_state, self._last_action, rwd/reward.reward().get_maxtime(training_data.columnNum, training_data.floorNum, training_data.shuttleNum), current_state))
+
+                if len(self._observations) > self.MEMORY_SIZE:
+                    self._observations.popleft()
+
+                # only train if done observing
+                if len(self._observations) > self.OBSERVATION_STEPS:
+                    # sample a mini_batch to train on
+                    mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
+                    # get the batch variables
+                    previous_states = [d[self.OBS_LAST_STATE_INDEX] for d in mini_batch]
+                    actions = [d[self.OBS_ACTION_INDEX] for d in mini_batch]
+                    rewards = [d[self.OBS_REWARD_INDEX] for d in mini_batch]
+                    current_states = [d[self.OBS_CURRENT_STATE_INDEX] for d in mini_batch]
+                    agents_expected_reward = []
+                    # this gives us the agents expected reward for each action we might
+                    agents_reward_per_action = self._session.run(self._output_layer,
+                                                                 feed_dict={self._input_layer: current_states})
+                    for i in range(len(mini_batch)):
+                        if mini_batch[i][self.OBS_TERMINAL_INDEX]:
+                            # this was a terminal frame so need so scale future reward...
+                            agents_expected_reward.append(rewards[i])
+                        else:
+                            agents_expected_reward.append(
+                                rewards[i] + self.FUTURE_REWARD_DISCOUNT * np.max(agents_reward_per_action[i]))
+
+                    # learn that these actions in these states lead to this reward
+                    self._session.run(self._train_operation, feed_dict={
+                        self._input_layer: previous_states,
+                        self._action: actions,
+                        self._target: agents_expected_reward})
+
+                # update the old values
+                self._last_state = current_state
+
+                # gradually reduce the probability of a random actionself.
+                if self._probability_of_random_action > self.FINAL_RANDOM_ACTION_PROB \
+                        and len(self._observations) > self.OBSERVATION_STEPS:
+                    self._probability_of_random_action -= \
+                        (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
+
+            return self._input_layer, self._output_layer
 
 
     def _choose_next_action(self):
@@ -169,11 +179,10 @@ class train(object):
 
 
     def change_to_two_dimension(self, rack_status, columnNum, floorNum):
-        rack_status = rack_status.split(", ")
-        result = [[0 for col in range(columnNum)] for row in range(floorNum)]
+        result = [[0.0 for col in range(columnNum)] for row in range(floorNum)]
         for row in range(floorNum):
             for col in range(columnNum):
-                result[row][col] = float(rack_status[row * floorNum + col])
+                result[row][col] = rack_status[row * floorNum + col]
         return result
 
 
