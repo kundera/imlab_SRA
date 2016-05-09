@@ -1,4 +1,5 @@
 from problemIO import problemreader
+from learner import solution
 
 
 
@@ -11,7 +12,7 @@ class simul(object):
         rack_size_h = test.get_problems(pidx)[pidx - 1].rack.column
         rack_size_v = test.get_problems(pidx)[pidx - 1].rack.floor
         one_cycle_act = 4
-        
+
         for action in range(one_cycle_act):
             loca = (rack_size_h * rack_size_v * order_raw[action + 1][0]) + (rack_size_v * order_raw[action + 1][1]) + \
                    order_raw[action + 1][2]
@@ -31,41 +32,35 @@ class simul(object):
                     rs2[loca] = -1
 
         return rs2
-    
 
-    def change_rs(self, rs, column, floor, order_raw):
+
+    def change_rs(self, rs, column, floor, sol):
                   # rs format : [-1,1,2,3,4,2,-1]
                   # order_raw format : [[59,51,68,1],[[1,0,0],[1,0,1],[1,0,1],[1,4,1]],['S','R','S','R']]
 
         rs2 = rs
         rack_size_h = column
         rack_size_v = floor
-        one_cycle_act = 4
 
+        for action in range(len(sol.loc)):
+            loca = (rack_size_h * rack_size_v * sol.loc[action][0]) + (rack_size_v * sol.loc[action][1]) + \
+                   sol.loc[action][2]
 
-        for action in range(one_cycle_act):
-            loca = (rack_size_h * rack_size_v * order_raw[action + 1][0]) + (rack_size_v * order_raw[action + 1][1]) + \
-                   order_raw[action + 1][2]
+            if sol.oper[action] == 'S':
+                rs2[loca] = sol.type[action]
 
-            if action % one_cycle_act == 0:  # one_cylce_act = 4
-                if order_raw[5][action] == 'S':
-                    rs2[loca] = order_raw[0][action]
-
-                elif order_raw[5][action] == 'R':
-                    rs2[loca] = -1
-
-
-            else:
-                if order_raw[5][action] == 'S':
-                    rs2[loca] = order_raw[0][action]
-
-                elif order_raw[5][action] == 'R':
-                    rs2[loca] = -1
+            elif sol.oper[action] == 'R':
+                rs2[loca] = -1
 
         return rs2
 
 
 if __name__ == '__main__':
-    test = simul()
+    test = problemreader.ProblemReader(2)
+    test1 = simul()
+    sol = solution.solution([59, 68, 13, 15], [[0, 0, 2], [0, 0, 3], [0, 0, 0], [0, 0, 1]], ['S', 'S', 'R', 'R'])
+    rs2 = test.get_problems(3)[0].rack.status
+    column = test.get_problems(3)[0].rack.column
+    floor = test.get_problems(3)[0].rack.floor
 
-    print test.change_rs_from_problem(2, 1, [[59, 68, 13, 15], [0, 0, 2], [0, 0, 3], [0, 0, 0], [0, 0, 1], ['S', 'S', 'R', 'R']])
+    print test1.change_rs(rs2,column,floor,sol)
