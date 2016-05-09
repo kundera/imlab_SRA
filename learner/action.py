@@ -391,22 +391,23 @@ class action(object):
 
         if min(c1,c2,c3,c4) == c1:
             io = [io[0],io[1],io[2],io[3]]
-            sol = solution.solution(io,d1,e1)
+            sol = solution.solution(d1,io,e1)
             cycletime = c1
             return sol, cycletime
         elif min(c1,c2,c3,c4) == c2:
             io = [io[0],io[1],io[3],io[2]]
-            sol = solution.solution(io,d2,e2)
+            sol = solution.solution(d2,io,e2)
             cycletime = c2
             return sol, cycletime
         elif min(c1,c2,c3,c4) == c3:
             io = [io[0],io[2],io[1],io[3]]
-            sol = solution.solution(io,d3,e3)
+            sol = solution.solution(d3,io,e3)
             cycletime = c3
+            #print sol.loc,sol.oper,sol.type
             return sol, cycletime
         elif min(c1,c2,c3,c4) == c4:
             io = [io[0],io[3],io[1],io[2]]
-            sol = solution.solution(io,d4,e4)
+            sol = solution.solution(d4,io,e4)
             cycletime = c4
             return sol, cycletime
 
@@ -423,28 +424,29 @@ class action(object):
         if idx == 0:
             a1, b1, c1, d1, e1 = self.dijk_ssr1r2(rs,column,floor,output)
             io = [io[0],io[1],io[2],io[3]]
-            sol = solution.solution(io,d1,e1)
+            sol = solution.solution(d1,io,e1)
             cycletime = c1
             return sol, cycletime
 
         elif idx == 1:
             a2, b2, c2, d2, e2 = self.dijk_ssr2r1(rs,column,floor,output)
             io = [io[0],io[1],io[3],io[2]]
-            sol = solution.solution(io,d2,e2)
+            sol = solution.solution(d2,io,e2)
             cycletime = c2
             return sol, cycletime
 
         elif idx == 2:
             a3, b3, c3, d3, e3 = self.dijk_sr1sr2(rs,column,floor,output)
             io = [io[0],io[2],io[1],io[3]]
-            sol = solution.solution(io,d3,e3)
+            sol = solution.solution(d3,io,e3)
             cycletime = c3
+            print sol.loc, sol.type, sol.oper
             return sol, cycletime
 
         elif idx == 3:
             a4, b4, c4, d4, e4 = self.dijk_sr2sr1(rs,column,floor,output)
             io = [io[0],io[3],io[1],io[2]]
-            sol = solution.solution(io,d4,e4)
+            sol = solution.solution(d4,io,e4)
             cycletime = c4
             return sol, cycletime
 
