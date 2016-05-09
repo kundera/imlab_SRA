@@ -54,16 +54,15 @@ class action(object):
         return list_sol_of_loca
 
 
-    def dijk_ssr1r2(self, tidx, pidx, outputs):# ex :outputs = [10,18]
+    def dijk_ssr1r2(self, rs, column, floor, outputs):# ex :outputs = [10,18]
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0], phase=0)
         G.add_node('end', loca=[0, 0, 0], phase=5)
         init_loca = [0, 0, 0]
         end_loca = [0, 0, 0]
-        test = problemreader.ProblemReader(tidx)
-        rack = test.get_problems(pidx)[pidx-1].rack.status
-        size_h = test.get_problems(pidx)[pidx-1].rack.column
-        size_v = test.get_problems(pidx)[pidx-1].rack.floor
+        rack = rs
+        size_h = column
+        size_v = floor
 
         # create first 'S'
         for a, item1 in enumerate(rack):
@@ -141,16 +140,15 @@ class action(object):
         #plt.show()
         return 'SSR1R2', path, length, self.print_dijk(G), io
 
-    def dijk_ssr2r1(self, tidx, pidx, outputs):  # ex :outputs = [10,18]
+    def dijk_ssr2r1(self, rs, column, floor, outputs):  # ex :outputs = [10,18]
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0], phase=0)
         G.add_node('end', loca=[0, 0, 0], phase=5)
         init_loca = [0, 0, 0]
         end_loca = [0, 0, 0]
-        test = problemreader.ProblemReader(tidx)
-        rack = test.get_problems(pidx)[pidx - 1].rack.status
-        size_h = test.get_problems(pidx)[pidx - 1].rack.column
-        size_v = test.get_problems(pidx)[pidx - 1].rack.floor
+        rack = rs
+        size_h = column
+        size_v = floor
 
         # create first 'S'
         for a, item1 in enumerate(rack):
@@ -223,16 +221,15 @@ class action(object):
         # plt.show()
         return 'SSR2R1', path, length, self.print_dijk(G), io
 
-    def dijk_sr1sr2(self, tidx, pidx, outputs): # ex :outputs = ['10','18']
+    def dijk_sr1sr2(self, rs, column, floor, outputs): # ex :outputs = ['10','18']
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0], phase=0)
         G.add_node('end', loca=[0, 0, 0], phase=5)
         init_loca = [0, 0, 0]
         end_loca = [0, 0, 0]
-        test = problemreader.ProblemReader(tidx)
-        rack = test.get_problems(pidx)[pidx - 1].rack.status
-        size_h = test.get_problems(pidx)[pidx - 1].rack.column
-        size_v = test.get_problems(pidx)[pidx - 1].rack.floor
+        rack = rs
+        size_h = column
+        size_v = floor
 
         # create first 'S'
         for a, item1 in enumerate(rack):
@@ -304,16 +301,15 @@ class action(object):
         # print 'SR1SR2', path['start']['end'], length['start']['end']
         return 'SR1SR2', path, length, self.print_dijk(G),io
 
-    def dijk_sr2sr1(self, tidx, pidx, outputs):# ex :outputs = [10,18]
+    def dijk_sr2sr1(self, rs, column, floor, outputs):# ex :outputs = [10,18]
         G = nx.Graph()
         G.add_node('start', loca=[0, 0, 0], phase=0)
         G.add_node('end', loca=[0, 0, 0], phase=5)
         init_loca = [0, 0, 0]
         end_loca = [0, 0, 0]
-        test = problemreader.ProblemReader(tidx)
-        rack = test.get_problems(pidx)[pidx - 1].rack.status
-        size_h = test.get_problems(pidx)[pidx - 1].rack.column
-        size_v = test.get_problems(pidx)[pidx - 1].rack.floor
+        rack = rs
+        size_h = column
+        size_v = floor
 
         # create first 'S'
         for a, item1 in enumerate(rack):
@@ -385,30 +381,34 @@ class action(object):
         # print 'SR2SR1', path['start']['end'], length['start']['end']
         return 'SR2SR1', path, length, self.print_dijk(G), io
 
-    def dijk(self,tidx,pidx,input,output): # concatenate 4 solutions // input/output example : [51,1] = 1 cycle outputs
+    def dijk(self,rs,column,floor,input,output): # concatenate 4 solutions // input/output example : [51,1] = 1 cycle outputs
 
-        a1,b1,c1,d1,e1 = self.dijk_ssr1r2(tidx,pidx,output)
-        a2,b2,c2,d2,e2 = self.dijk_ssr2r1(tidx,pidx,output)
-        a3,b3,c3,d3,e3 = self.dijk_sr1sr2(tidx,pidx,output)
-        a4,b4,c4,d4,e4 = self.dijk_sr2sr1(tidx,pidx,output)
+        a1,b1,c1,d1,e1 = self.dijk_ssr1r2(rs,column,floor,output)
+        a2,b2,c2,d2,e2 = self.dijk_ssr2r1(rs,column,floor,output)
+        a3,b3,c3,d3,e3 = self.dijk_sr1sr2(rs,column,floor,output)
+        a4,b4,c4,d4,e4 = self.dijk_sr2sr1(rs,column,floor,output)
         io = input + output
 
         if min(c1,c2,c3,c4) == c1:
             io = [io[0],io[1],io[2],io[3]]
             sol = solution.solution(io,d1,e1)
-            return [sol.type, sol.loc, sol.oper]
+            cycletime = c1
+            return sol, cycletime
         elif min(c1,c2,c3,c4) == c2:
             io = [io[0],io[1],io[3],io[2]]
             sol = solution.solution(io,d2,e2)
-            return [sol.type, sol.loc, sol.oper]
+            cycletime = c2
+            return sol, cycletime
         elif min(c1,c2,c3,c4) == c3:
             io = [io[0],io[2],io[1],io[3]]
             sol = solution.solution(io,d3,e3)
-            return [sol.type, sol.loc, sol.oper]
+            cycletime = c3
+            return sol, cycletime
         elif min(c1,c2,c3,c4) == c4:
             io = [io[0],io[3],io[1],io[2]]
             sol = solution.solution(io,d4,e4)
-            return [sol.type, sol.loc, sol.oper]
+            cycletime = c4
+            return sol, cycletime
 
 
         #print action.dijk_ssr1r2(rs,size_h, size_v, output)
@@ -416,35 +416,52 @@ class action(object):
         #print action.dijk_sr1sr2(rs,size_h, size_v, output)
         #print action.dijk_sr2sr1(rs,size_h, size_v, output)
 
-    def dijk_idx(self, tidx, pidx, input, output, idx):
+    def dijk_idx(self, rs, column, floor, input, output, idx):
 
         io = input + output
 
         if idx == 0:
-            a1, b1, c1, d1, e1 = self.dijk_ssr1r2(tidx, pidx, output)
+            a1, b1, c1, d1, e1 = self.dijk_ssr1r2(rs,column,floor,output)
             io = [io[0],io[1],io[2],io[3]]
             sol = solution.solution(io,d1,e1)
-            return [sol.type, sol.loc, sol.oper], c1
+            cycletime = c1
+            return sol, cycletime
+
         elif idx == 1:
-            a2, b2, c2, d2, e2 = self.dijk_ssr2r1(tidx, pidx, output)
+            a2, b2, c2, d2, e2 = self.dijk_ssr2r1(rs,column,floor,output)
             io = [io[0],io[1],io[3],io[2]]
             sol = solution.solution(io,d2,e2)
-            return [sol.type, sol.loc, sol.oper], c2
+            cycletime = c2
+            return sol, cycletime
+
         elif idx == 2:
-            a3, b3, c3, d3, e3 = self.dijk_sr1sr2(tidx, pidx, output)
+            a3, b3, c3, d3, e3 = self.dijk_sr1sr2(rs,column,floor,output)
             io = [io[0],io[2],io[1],io[3]]
             sol = solution.solution(io,d3,e3)
-            return [sol.type, sol.loc, sol.oper], c3
+            cycletime = c3
+            return sol, cycletime
+
         elif idx == 3:
-            a4, b4, c4, d4, e4 = self.dijk_sr2sr1(tidx, pidx, output)
+            a4, b4, c4, d4, e4 = self.dijk_sr2sr1(rs,column,floor,output)
             io = [io[0],io[3],io[1],io[2]]
             sol = solution.solution(io,d4,e4)
-            return [sol.type, sol.loc, sol.oper], c4
+            cycletime = c4
+            return sol, cycletime
+
+    def dijk_all(self, rs, column, floor, input, output):
+            return self.dijk_idx(rs,column,floor,input,output,0), self.dijk_idx(rs,column,floor,input,output,1), \
+                   self.dijk_idx(rs,column,floor,input,output,2), self.dijk_idx(rs,column,floor,input,output,3),
+
 
 
 if __name__ == '__main__':
-    test = action()
-    print test.dijk(15,1,[700,392],[3,0])
-    for i in range(4):
-        print test.dijk_idx(15,1,[700,392],[3,0],i) #execute dijk function here!!!
+    test = problemreader.ProblemReader(15)
+    rs = test.get_problem(1).rack.status
+    column = test.get_problem(1).rack.column
+    floor = test.get_problem(1).rack.floor
+
+    ts = action()
+
+    print ts.dijk(rs,column,floor,[700,392],[3,0])
+    print ts.dijk_all(rs,column,floor,[700,392],[3,0])
 
