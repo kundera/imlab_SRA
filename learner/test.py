@@ -63,71 +63,60 @@ class test(object):
 
 
     def _test(self, test_data):
-        cycleNum = test_data.requestLength / test_data.shuttleNum
-        rack = test_data.rack
-        rack_status = self.change_to_two_dimension(test_data.rack, test_data.columnNum, test_data.floorNum)
-        rack_status = state.get_storage_binary(rack_status)
-        rack_status = np.array(rack_status)
+        for problem_set in test_data:
+            total_cycletime = 0.0
 
-        # scale down game image
-        screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+            sht = problem_set.shuttleNum
+            clm = problem_set.columnNum
+            flr = problem_set.floorNum
 
-        # first frame must be handled differently
-        self._last_state = np.stack(tuple(screen_resized for _ in range(self.STATE_FRAMES)), axis=2)
+            rack = problem_set.rack.status
 
-        total_cycletime = 0.0
-
-        for order_idx in range(cycleNum):
-            input = test_data.input.split(", ")[
-                    order_idx * test_data.shuttleNum:order_idx * test_data.shuttleNum + test_data.shuttleNum]
-            output = test_data.output.split(", ")[
-                     order_idx * test_data.shuttleNum:order_idx * test_data.shuttleNum + test_data.shuttleNum]
-
-            self._last_action = self._choose_next_action()
-
-            for i in range(len(self._last_action)):
-                if self._last_action[i] == 1:
-                    action_index = i
-                    break
-            at = action.action()
-
-            a1, a2, a3, a4 = at.dijk_idx(rack.split(", "), test_data.columnNum, test_data.floorNum, input, output,
-                                         action_index)
-
-            a = []
-            for i in range(len(a1)):
-                a.append(a1[i])
-            for i in range(len(a2)):
-                a.append(a2[i])
-            for i in range(len(a3)):
-                a.append(a3[i])
-
-            sim = simulator.simul()
-
-            rack_array = sim.change_rs(rack, a)
-            rack = ''
-            for i in range(len(rack_array)):
-                rack += rack_array[i] + ", "
-            rack = rack[:-2]
-
-            rack_status = self.change_to_two_dimension(rack, test_data.columnNum, test_data.floorNum)
-            rack_status = state.get_storage_binary(rack_status)
-            rack_status = np.array(rack_status)
+            rack_resized = state.get_storage_binary(rack)
+            rack_resized = self.change_to_two_dimension(rack_resized, clm, flr)
+            rack_resized = np.array(rack_resized)
 
             # scale down game image
-            screen_resized = cv2.resize(rack_status, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+            rack_resized = cv2.resize(rack_resized, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
 
-            screen_resized = np.reshape(screen_resized,
-                                        (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
+            # first frame must be handled differently
+            self._last_state = np.stack(tuple(rack_resized for _ in range(self.STATE_FRAMES)), axis=2)
 
-            current_state = np.append(screen_resized, self._last_state[:, :, 1:], axis=2)
+            cycleNum = problem_set.requestLength / sht
 
-            # update the old values
-            self._last_state = current_state
+            for order_idx in range(cycleNum):
+                input = problem_set.input[order_idx * sht:order_idx * sht + sht]
+                output = problem_set.output[order_idx * sht:order_idx * sht + sht]
 
-            total_cycletime += a4
+                self._last_action = self._choose_next_action()
 
-        return total_cycletime
+                for i in range(len(self._last_action)):
+                    if self._last_action[i] == 1:
+                        action_chosen = i
+                        break
+
+                at = action.action()
+
+                solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, action_chosen)
+
+                sim = nextstate.simul()
+
+                rack = sim.change_rs(rack, clm, flr, solution)
+
+                rack_resized = state.get_storage_binary(rack)
+                rack_resized = self.change_to_two_dimension(rack_resized, clm, flr)
+                rack_resized = np.array(rack_resized)
+
+                # scale down game image
+                rack_resized = cv2.resize(rack_resized, (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y))
+
+                rack_resized = np.reshape(rack_resized,
+                                          (self.RESIZED_SCREEN_X, self.RESIZED_SCREEN_Y, 1))
+
+                current_state = np.append(rack_resized, self._last_state[:, :, 1:], axis=2)
+
+                # update the old values
+                self._last_state = current_state
 
 
 if __name__ == '__main__':
