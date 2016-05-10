@@ -26,7 +26,7 @@ class ActionGenerator(object):
         # leftward direction search
 
         # sol.type = [[1, 0, 0], [1, 0, 1], [1, 0, 1], [1, 4, 1]]
-        target = sol.type[0]
+        target = sol.loc[0]
         lot = []
 
         for a, item1 in enumerate(rack):
@@ -38,14 +38,14 @@ class ActionGenerator(object):
         if lot == []:
             return sol
         else:
-            sol.type[0] = lot[0]
+            sol.loc[0] = lot[0]
             return sol
 
     def left_greedy_search(self, rack, column, floor, sol):
         # leftward direction search
 
         # sol.type = [[1, 0, 0], [1, 0, 1], [1, 0, 1], [1, 4, 1]]
-        target = sol.type[0]
+        target = sol.loc[0]
         lot = []
 
         for a, item1 in enumerate(rack):
@@ -58,14 +58,14 @@ class ActionGenerator(object):
             return sol
         else:
             lot.reverse()
-            sol.type[0] = lot[0]
+            sol.loc[0] = lot[0]
             return sol
 
     def top_greedy_search(self, rack, column, floor, sol):
         # leftward direction search
 
         # sol.type = [[1, 0, 0], [1, 0, 1], [1, 0, 1], [1, 4, 1]]
-        target = sol.type[0]
+        target = sol.loc[0]
         lot = []
 
         for a, item1 in enumerate(rack):
@@ -78,14 +78,14 @@ class ActionGenerator(object):
             return sol
         else:
             print lot
-            sol.type[0] = lot[0]
+            sol.loc[0] = lot[0]
             return sol
 
     def bottom_greedy_search(self, rack, column, floor, sol):
         # leftward direction search
 
         # sol.type = [[1, 0, 0], [1, 0, 1], [1, 0, 1], [1, 4, 1]]
-        target = sol.type[0]
+        target = sol.loc[0]
         lot = []
 
         for a, item1 in enumerate(rack):
@@ -98,7 +98,7 @@ class ActionGenerator(object):
             return sol
         else:
             lot.reverse()
-            sol.type[0] = lot[0]
+            sol.loc[0] = lot[0]
             return sol
 
     def generating_idx(self, rack, column, floor, sol, idx):
@@ -156,11 +156,11 @@ if __name__ == '__main__':
     make = ActionGenerator()
 
     print 1
-    print make.left_greedy_search(rs, column, floor, sol).type
+    print make.left_greedy_search(rs, column, floor, sol).loc
     print 2
-    print make.right_greedy_search(rs, column, floor, sol).type
+    print make.right_greedy_search(rs, column, floor, sol).loc
     print 3
-    print make.top_greedy_search(rs, column, floor, sol).type
+    print make.top_greedy_search(rs, column, floor, sol).loc
     print 4
-    print make.bottom_greedy_search(rs, column, floor, sol).type
+    print make.bottom_greedy_search(rs, column, floor, sol).loc
     print 5
