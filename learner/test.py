@@ -5,7 +5,7 @@ import random
 import cv2
 import reward
 from problemIO import problemreader
-from simulator import simulator
+from simulator import nextstate
 import action
 import state
 import train
@@ -32,34 +32,12 @@ class test(object):
         self._input_layer = _input_layer
         self._output_layer = _output_layer
 
-        self._action = tf.placeholder("float", [None, self.ACTIONS_COUNT])
-        self._target = tf.placeholder("float", [None])
-
-        readout_action = tf.reduce_sum(tf.mul(self._output_layer, self._action), reduction_indices=1)
-
-        cost = tf.reduce_mean(tf.square(self._target - readout_action))
-        self._train_operation = tf.train.AdamOptimizer(self.LEARN_RATE).minimize(cost)
-
-        self._observations = deque()
-
         # set the first action to do nothing
         self._last_action = np.zeros(self.ACTIONS_COUNT)
 
         self._last_state = None
-        self._probability_of_random_action = self.INITIAL_RANDOM_ACTION_PROB
 
         self._session.run(tf.initialize_all_variables())
-
-
-    def _choose_next_action(self):
-        new_action = np.zeros([self.ACTIONS_COUNT])
-
-        # choose an action given our last state
-        readout_t = self._session.run(self._output_layer, feed_dict={self._input_layer: [self._last_state]})[0]
-        action_index = np.argmax(readout_t)
-
-        new_action[action_index] = 1
-        return new_action
 
 
     def _test(self, test_data):
@@ -118,8 +96,33 @@ class test(object):
                 # update the old values
                 self._last_state = current_state
 
+                total_cycletime += cycletime
+            print total_cycletime
+
+
+    def _choose_next_action(self):
+        new_action = np.zeros([self.ACTIONS_COUNT])
+
+        # choose an action given our last state
+        readout_t = self._session.run(self._output_layer, feed_dict={self._input_layer: [self._last_state]})[0]
+        action_index = np.argmax(readout_t)
+
+        new_action[action_index] = 1
+        return new_action
+
+
+    def change_to_two_dimension(self, rack_status, columnNum, floorNum):
+        result = [[0.0 for col in range(columnNum)] for row in range(floorNum)]
+        for row in range(floorNum):
+            for col in range(columnNum):
+                result[row][col] = rack_status[row * floorNum + col]
+        return result
+
 
 if __name__ == '__main__':
     tr = train.train()
-    pr = problemreader.ProblemReader(10)
-    te = test(tr._train(pr.get_problems(10)))
+    pr = problemreader.ProblemReader(20)
+    input, output = tr._train(pr.get_problems(3))
+    te = test(input, output)
+    pr2 = problemreader.ProblemReader(21)
+    te._test(pr2.get_problems(3))
