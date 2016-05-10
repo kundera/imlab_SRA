@@ -9,9 +9,10 @@ from simulator import nextstate
 import action
 import state
 import train
+import actiongenerator
 
 class test(object):
-    ACTIONS_COUNT = 4  # number of valid actions.
+    ACTIONS_COUNT = 5  # number of valid actions.
     STATE_FRAMES = 4  # number of frames to store in the state
     RESIZED_SCREEN_X, RESIZED_SCREEN_Y = (80, 80)
 
@@ -63,8 +64,10 @@ class test(object):
                         break
 
                 at = action.action()
+                sol, cyc = at.dijk(rack, clm, flr, input, output)
 
-                solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, action_chosen)
+                atg = actiongenerator.ActionGenerator()
+                solution, cycletime = atg.generating_idx(rack, clm, flr, sol, action_chosen)
 
                 sim = nextstate.simul()
 
@@ -111,7 +114,7 @@ class test(object):
 if __name__ == '__main__':
     tr = train.train()
     pr = problemreader.ProblemReader(20)
-    input, output = tr._train(pr.get_problems(3))
+    input, output = tr._train(pr.get_problems(10))
     te = test(input, output)
-    pr2 = problemreader.ProblemReader(21)
+    pr2 = problemreader.ProblemReader(20)
     te._test(pr2.get_problems(3))

@@ -8,9 +8,10 @@ from problemIO import problemreader
 from simulator import nextstate
 import action
 import state
+import actiongenerator
 
 class train(object):
-    ACTIONS_COUNT = 4  # number of valid actions.
+    ACTIONS_COUNT = 5  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
     OBSERVATION_STEPS = 33.  # time steps to observe before training
     EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
@@ -81,8 +82,10 @@ class train(object):
                         break
 
                 at = action.action()
+                sol, cyc = at.dijk(rack, clm, flr, input, output)
 
-                solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, action_chosen)
+                atg = actiongenerator.ActionGenerator()
+                solution, cycletime = atg.generating_idx(rack, clm, flr, sol, action_chosen)
 
                 sim = nextstate.simul()
 
@@ -100,8 +103,13 @@ class train(object):
 
                 current_state = np.append(rack_resized, self._last_state[:, :, 1:], axis=2)
 
+                if order_idx == cycleNum-1:
+                    terminal = True
+                else:
+                    terminal = False
+
                 # store the transition in previous_observations
-                self._observations.append((self._last_state, self._last_action, cycletime/reward.reward().get_maxtime(clm, flr, sht), current_state))
+                self._observations.append((self._last_state, self._last_action, cycletime/reward.reward().get_maxtime(clm, flr, sht), current_state, terminal))
 
                 if len(self._observations) > self.MEMORY_SIZE:
                     self._observations.popleft()

@@ -77,7 +77,6 @@ class ActionGenerator(object):
         if lot == []:
             return sol
         else:
-            print lot
             sol.loc[0] = lot[0]
             return sol
 
