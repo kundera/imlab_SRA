@@ -113,32 +113,6 @@ class ActionGenerator(object):
             sol.loc[0] = lot[0]
             return sol
 
-    def generating_idx(self, rack, column, floor, sol, idx):
-        cal = reward.reward()
-        if idx == 0:
-            cycletime = cal.get_cycletime(sol)
-            return sol, cycletime
-
-        elif idx == 1:
-            new_sol = self.right_greedy_search(rack, column, floor, sol)
-            cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
-
-        elif idx == 2:
-            new_sol = self.left_greedy_search(rack, column, floor, sol)
-            cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
-
-        elif idx == 3:
-            new_sol = self.top_greedy_search(rack, column, floor, sol)
-            cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
-
-        elif idx == 4:
-            new_sol = self.bottom_greedy_search(rack, column, floor, sol)
-            cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
-
     def io_partial_search(self, rack, column, floor, sol):
         # close to I/O point
         target = sol.loc[0]
@@ -189,6 +163,42 @@ class ActionGenerator(object):
     def full_search(self, rack, column, floor, sol):
         # close to median value of the item
         return
+
+    def generating_idx(self, rack, column, floor, sol, idx):
+        cal = reward.reward()
+        if idx == 0:
+            cycletime = cal.get_cycletime(sol)
+            return sol, cycletime
+
+        elif idx == 1:
+            new_sol = self.right_greedy_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
+
+        elif idx == 2:
+            new_sol = self.left_greedy_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
+
+        elif idx == 3:
+            new_sol = self.top_greedy_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
+
+        elif idx == 4:
+            new_sol = self.bottom_greedy_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
+
+        elif idx == 5:
+            new_sol = self.io_partial_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
+
+        elif idx == 6:
+            new_sol = self.next_partial_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
 
 if __name__ == '__main__':
 
