@@ -155,7 +155,6 @@ class ActionGenerator(object):
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[1] > target[1] and loca1[2] < target[2]:
                     lot.append(loca1)
-                    print loca1
 
         if lot == []:
             return sol
@@ -178,7 +177,6 @@ class ActionGenerator(object):
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[1] < target[1] and loca1[2] > target[2]:
                     lot.append(loca1)
-                    print loca1
 
         if lot == []:
             return sol
@@ -226,7 +224,6 @@ class ActionGenerator(object):
                 if min(target[1], next_node[1]) < loca1[1] < max(target[1], next_node[1]) and \
                                         min(target[2], next_node[2]) < loca1[2] < max(target[2], next_node[2]):
                     lot.append(loca1)
-                    print loca1
 
         if lot == []:
             return sol
