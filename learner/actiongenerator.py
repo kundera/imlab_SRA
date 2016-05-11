@@ -38,7 +38,6 @@ class ActionGenerator(object):
     def right_greedy_search(self, rack, column, floor, sol):
         # leftward direction search
 
-        # sol.type = [[1, 0, 0], [1, 0, 1], [1, 0, 1], [1, 4, 1]]
         target = sol.loc[0]
         lot = []
 
@@ -162,43 +161,82 @@ class ActionGenerator(object):
 
     def full_search(self, rack, column, floor, sol):
         # close to median value of the item
-        return
+        target = sol.loc[0]
+        lot = []
+        sublot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == sol.type[0]:
+                loca1 = self.loca_calculate(a, column, floor)
+                sublot.append(loca1)
+
+        target_to = [0, 0, 0]
+        target_to_go = [0, 0, 0]
+
+        for b in range(len(sublot)):
+            target_to[1] += sublot[b][1]
+            target_to[2] += sublot[b][2]
+
+        target_to_go[1] = float(target_to[1]) / len(sublot)
+        target_to_go[2] = float(target_to[2]) / len(sublot)
+
+        for c, item1 in enumerate(rack):
+            if item1 == -1:
+                loca1 = self.loca_calculate(c, column, floor)
+                if target[1] < loca1[1] < target_to_go[1] and target[2] < loca1[2] < target_to_go[2]:
+                    lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for d in range(len(lot)):
+                new_distance = math.sqrt(lot[d][1] - target[1]) + math.sqrt(lot[d][2] - target[2])
+                if distance > new_distance:
+                    sol.loc[0] = lot[d]
+                    distance = new_distance
+            return sol
 
     def generating_idx(self, rack, column, floor, sol, idx):
         cal = reward.reward()
         if idx == 0:
             cycletime = cal.get_cycletime(sol)
-            return sol, cycletime
+            return 'ori', sol, cycletime
 
         elif idx == 1:
             new_sol = self.right_greedy_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
+            return 'right', new_sol, cycletime
 
         elif idx == 2:
             new_sol = self.left_greedy_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
+            return 'left', new_sol, cycletime
 
         elif idx == 3:
             new_sol = self.top_greedy_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
+            return 'top', new_sol, cycletime
 
         elif idx == 4:
             new_sol = self.bottom_greedy_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
+            return 'bottom', new_sol, cycletime
 
         elif idx == 5:
             new_sol = self.io_partial_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
+            return 'io', new_sol, cycletime
 
         elif idx == 6:
             new_sol = self.next_partial_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
-            return new_sol, cycletime
+            return 'next', new_sol, cycletime
+
+        elif idx == 7:
+            new_sol = self.full_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return 'full', new_sol, cycletime
 
 if __name__ == '__main__':
 
@@ -212,9 +250,16 @@ if __name__ == '__main__':
         print make.change_to_two_dimension1(rs, column, floor)[a], '    ', make.change_to_two_dimension2(rs, column, floor)[a]
 
     ts = action.action()
-    sol = ts.dijk(rs, column, floor, [700, 392], [24, 24])[0]
+    sol = ts.dijk(rs, column, floor, [28, 29], [24, 25])[0]
     print sol.type, sol.oper, sol.loc
 
+    print make.right_greedy_search(rs, column, floor, sol).loc
+    print make.left_greedy_search(rs, column, floor, sol).loc
+    print make.top_greedy_search(rs, column, floor, sol).loc
+    print make.bottom_greedy_search(rs, column, floor, sol).loc
+    print make.io_partial_search(rs, column, floor, sol).loc
     print make.next_partial_search(rs, column, floor, sol).loc
-    # for i in range(0, 5):
-    #    print make.generating_idx(rs, column, floor, sol, i)[0].loc, make.generating_idx(rs, column, floor, sol, i)[1]
+    print make.full_search(rs, column, floor, sol).loc
+    # for i in range(0, 8):
+    #    new_sol = sol
+    #    print make.generating_idx(rs, column, floor, new_sol, i)[0], make.generating_idx(rs, column, floor, new_sol, i)[1].loc, make.generating_idx(rs, column, floor, new_sol, i)[2]
