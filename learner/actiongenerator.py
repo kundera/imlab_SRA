@@ -35,7 +35,7 @@ class ActionGenerator(object):
                 result[row][col] = rack_status[columnNum * floorNum + row * floorNum + col]
         return result
 
-    def s1_right_greedy_search(self, rack, column, floor, sol):
+    def s1_right_search(self, rack, column, floor, sol):
         # leftward direction search
 
         target = sol.loc[0]
@@ -57,7 +57,7 @@ class ActionGenerator(object):
                     itr = lot[b][1]
             return sol
 
-    def s1_left_greedy_search(self, rack, column, floor, sol):
+    def s1_left_search(self, rack, column, floor, sol):
         # leftward direction search
 
         target = sol.loc[0]
@@ -79,7 +79,7 @@ class ActionGenerator(object):
                     itr = lot[b][1]
             return sol
 
-    def s1_top_greedy_search(self, rack, column, floor, sol):
+    def s1_top_search(self, rack, column, floor, sol):
         # leftward direction search
 
         target = sol.loc[0]
@@ -101,7 +101,7 @@ class ActionGenerator(object):
                     itr = lot[b][2]
             return sol
 
-    def s1_bottom_greedy_search(self, rack, column, floor, sol):
+    def s1_bottom_search(self, rack, column, floor, sol):
         # leftward direction search
 
         target = sol.loc[0]
@@ -123,7 +123,75 @@ class ActionGenerator(object):
                     itr = lot[b][2]
             return sol
 
-    def s1_io_partial_search(self, rack, column, floor, sol):
+    def s1_right_top_search(self, rack, column, floor, sol):
+        # close to I/O point
+        target = sol.loc[0]
+        lot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == -1:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] > target[1] and loca1[2] > target[2]:
+                    lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[0] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def s1_right_bottom_search(self, rack, column, floor, sol):
+        # close to I/O point
+        target = sol.loc[0]
+        lot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == -1:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] > target[1] and loca1[2] < target[2]:
+                    lot.append(loca1)
+                    print loca1
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[0] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def s1_left_top_search(self, rack, column, floor, sol):
+        # close to I/O point
+        target = sol.loc[0]
+        lot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == -1:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] < target[1] and loca1[2] > target[2]:
+                    lot.append(loca1)
+                    print loca1
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[0] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def s1_left_bottom_search(self, rack, column, floor, sol):
         # close to I/O point
         target = sol.loc[0]
         lot = []
@@ -139,14 +207,14 @@ class ActionGenerator(object):
         else:
             distance = 0
             for b in range(len(lot)):
-                new_distance = math.sqrt(lot[b][1]-0) + math.sqrt(lot[b][2]-0)
+                new_distance = math.pow((lot[b][1]-0), 2) + math.pow((lot[b][2]-0), 2)
                 if distance < new_distance:
                     sol.loc[0] = lot[b]
                     distance = new_distance
 
             return sol
 
-    def s1_next_partial_search(self, rack, column, floor, sol):
+    def s1_next_search(self, rack, column, floor, sol):
         # close to after point
         target = sol.loc[0]
         next_node = sol.loc[1]
@@ -165,14 +233,14 @@ class ActionGenerator(object):
         else:
             distance = 10000
             for b in range(len(lot)):
-                new_distance = math.sqrt(lot[b][1]-target[1]) + math.sqrt(lot[b][2]-target[2])
+                new_distance = math.pow((lot[b][1]-target[1]), 2) + math.pow((lot[b][2]-target[2]), 2)
                 if distance > new_distance:
                     sol.loc[0] = lot[b]
                     distance = new_distance
 
             return sol
 
-    def s1_full_search(self, rack, column, floor, sol):
+    def s1_item_search(self, rack, column, floor, sol):
         # close to median value of the item
         target = sol.loc[0]
         lot = []
@@ -205,7 +273,7 @@ class ActionGenerator(object):
         else:
             distance = 10000
             for d in range(len(lot)):
-                new_distance = math.sqrt(lot[d][1] - target[1]) + math.sqrt(lot[d][2] - target[2])
+                new_distance = math.pow((lot[d][1] - target[1]), 2) + math.pow((lot[d][2] - target[2]), 2)
                 if distance > new_distance:
                     sol.loc[0] = lot[d]
                     distance = new_distance
@@ -218,37 +286,52 @@ class ActionGenerator(object):
             return sol, cycletime
 
         elif idx == 1:
-            new_sol = self.s1_right_greedy_search(rack, column, floor, sol)
+            new_sol = self.s1_right_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
             return new_sol, cycletime
 
         elif idx == 2:
-            new_sol = self.s1_left_greedy_search(rack, column, floor, sol)
+            new_sol = self.s1_left_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
             return new_sol, cycletime
 
         elif idx == 3:
-            new_sol = self.s1_top_greedy_search(rack, column, floor, sol)
+            new_sol = self.s1_top_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
             return new_sol, cycletime
 
         elif idx == 4:
-            new_sol = self.s1_bottom_greedy_search(rack, column, floor, sol)
+            new_sol = self.s1_bottom_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
             return new_sol, cycletime
 
         elif idx == 5:
-            new_sol = self.s1_io_partial_search(rack, column, floor, sol)
+            new_sol = self.s1_right_top_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
             return new_sol, cycletime
 
         elif idx == 6:
-            new_sol = self.s1_next_partial_search(rack, column, floor, sol)
+            new_sol = self.s1_right_bottom_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
             return new_sol, cycletime
 
         elif idx == 7:
-            new_sol = self.s1_full_search(rack, column, floor, sol)
+            new_sol = self.s1_left_top_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
+
+        elif idx == 8:
+            new_sol = self.s1_left_bottom_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
+
+        elif idx == 9:
+            new_sol = self.s1_next_search(rack, column, floor, sol)
+            cycletime = cal.get_cycletime(new_sol)
+            return new_sol, cycletime
+
+        elif idx == 10:
+            new_sol = self.s1_item_search(rack, column, floor, sol)
             cycletime = cal.get_cycletime(new_sol)
             return new_sol, cycletime
 
@@ -261,7 +344,7 @@ if __name__ == '__main__':
 
     make = ActionGenerator()
     for a in range(floor):
-        print make.change_to_two_dimension1(rs, column, floor)[a], '    ', make.change_to_two_dimension2(rs, column, floor)[a]
+        print make.change_to_two_dimension1(rs, column, floor)[floor - a - 1], '    ', make.change_to_two_dimension2(rs, column, floor)[floor - 1 - a]
 
     ts = action.action()
     sol = ts.dijk(rs, column, floor, [664, 277], [84, 760])[0]
@@ -269,12 +352,15 @@ if __name__ == '__main__':
 
     #for i in range(0, 8):
     #    new_sol = sol
-    #    print make.s1_generating_idx(rs, column, floor, new_sol, i)[0], make.s1_generating_idx(rs, column, floor, new_sol, i)[1].loc, make.s1_generating_idx(rs, column, floor, new_sol, i)[2]
+    #    print make.s1_generating_idx(rs, column, floor, new_sol, i)[0].loc, make.s1_generating_idx(rs, column, floor, new_sol, i)[1]
 
-    # print make.s1_right_greedy_search(rs, column, floor, sol).loc
-    # print make.s1_left_greedy_search(rs, column, floor, sol).loc
-    # print make.s1_top_greedy_search(rs, column, floor, sol).loc
-    # print make.s1_bottom_greedy_search(rs, column, floor, sol).loc
-    # print make.s1_io_partial_search(rs, column, floor, sol).loc
-    # print make.s1_next_partial_search(rs, column, floor, sol).loc
-    print make.s1_full_search(rs, column, floor, sol).loc
+    # print make.s1_right_search(rs, column, floor, sol).loc
+    # print make.s1_left_search(rs, column, floor, sol).loc
+    # print make.s1_top_search(rs, column, floor, sol).loc
+    # print make.s1_bottom_search(rs, column, floor, sol).loc
+    # print make.s1_right_top_search(rs, column, floor, sol).loc
+    # print make.s1_right_bottom_search(rs, column, floor, sol).loc
+    print make.s1_left_top_search(rs, column, floor, sol).loc
+    # print make.s1_left_bottom_search(rs, column, floor, sol).loc
+    # print make.s1_next_search(rs, column, floor, sol).loc
+    # print make.s1_item_search(rs, column, floor, sol).loc
