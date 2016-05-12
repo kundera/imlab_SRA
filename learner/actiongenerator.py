@@ -40,21 +40,37 @@ class ActionGenerator(object):
 
         target = sol.loc[0]
         lot = []
+        max_col = column - 1
+        max_flo = floor - 1
+        dif_col = max_col - target[1]
+        dif_flo = max_flo - target[2]
+        upper_slope = float(dif_flo) / dif_col
+        lower_slope = float(-target[2]) / dif_col
 
         for a, item1 in enumerate(rack):
             if item1 == -1:
                 loca1 = self.loca_calculate(a, column, floor)
-                if loca1[2] == target[2] and loca1[1] > target[1]:
-                    lot.append(loca1)
+                if loca1[1] > target[1]:
+                    if loca1[2] == target[2]:
+                        lot.append(loca1)
+                    elif loca1[2] > target[2]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if target_slope < upper_slope:
+                            lot.append(loca1)
+                    elif loca1[2] < target[2]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if lower_slope < target_slope:
+                            lot.append(loca1)
 
         if lot == []:
             return sol
         else:
-            itr = 10000
+            distance = 10000
             for b in range(len(lot)):
-                if itr > lot[b][1]:
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
                     sol.loc[0] = lot[b]
-                    itr = lot[b][1]
+                    distance = new_distance
             return sol
 
     def s1_left_search(self, rack, column, floor, sol):
@@ -62,21 +78,36 @@ class ActionGenerator(object):
 
         target = sol.loc[0]
         lot = []
+        max_flo = floor - 1
+        dif_col = - target[1]
+        dif_flo = max_flo - target[2]
+        upper_slope = float(dif_flo) / dif_col
+        lower_slope = float(-target[2]) / dif_col
 
         for a, item1 in enumerate(rack):
             if item1 == -1:
                 loca1 = self.loca_calculate(a, column, floor)
-                if loca1[2] == target[2] and loca1[1] < target[1]:
-                    lot.append(loca1)
+                if loca1[1] < target[1]:
+                    if loca1[2] == target[2]:
+                        lot.append(loca1)
+                    elif loca1[2] > target[2]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if upper_slope < target_slope:
+                            lot.append(loca1)
+                    elif loca1[2] < target[2]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if lower_slope > target_slope:
+                            lot.append(loca1)
 
         if lot == []:
             return sol
         else:
-            itr = 0
+            distance = 10000
             for b in range(len(lot)):
-                if itr < lot[b][1]:
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
                     sol.loc[0] = lot[b]
-                    itr = lot[b][1]
+                    distance = new_distance
             return sol
 
     def s1_top_search(self, rack, column, floor, sol):
@@ -84,21 +115,37 @@ class ActionGenerator(object):
 
         target = sol.loc[0]
         lot = []
+        max_col = column - 1
+        max_flo = floor - 1
+        dif_col = max_col - target[1]
+        dif_flo = max_flo - target[2]
+        right_slope = float(dif_flo) / dif_col
+        left_slope = float(dif_flo) / (- target[1])
 
         for a, item1 in enumerate(rack):
             if item1 == -1:
                 loca1 = self.loca_calculate(a, column, floor)
-                if loca1[1] == target[1] and loca1[2] > target[2]:
-                    lot.append(loca1)
+                if loca1[2] > target[2]:
+                    if loca1[1] == target[1]:
+                        lot.append(loca1)
+                    elif loca1[1] > target[1]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if target_slope > right_slope:
+                            lot.append(loca1)
+                    elif loca1[1] < target[1]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if left_slope < target_slope:
+                            lot.append(loca1)
 
         if lot == []:
             return sol
         else:
-            itr = 10000
+            distance = 10000
             for b in range(len(lot)):
-                if itr > lot[b][2]:
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
                     sol.loc[0] = lot[b]
-                    itr = lot[b][2]
+                    distance = new_distance
             return sol
 
     def s1_bottom_search(self, rack, column, floor, sol):
@@ -106,21 +153,35 @@ class ActionGenerator(object):
 
         target = sol.loc[0]
         lot = []
+        max_col = column - 1
+        dif_col = max_col - target[1]
+        right_slope = float(- target[2]) / dif_col
+        left_slope = float(- target[2]) / (- target[1])
 
         for a, item1 in enumerate(rack):
             if item1 == -1:
                 loca1 = self.loca_calculate(a, column, floor)
-                if loca1[1] == target[1] and loca1[2] < target[2]:
-                    lot.append(loca1)
+                if loca1[2] < target[2]:
+                    if loca1[1] == target[1]:
+                        lot.append(loca1)
+                    elif loca1[1] > target[1]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if target_slope > right_slope:
+                            lot.append(loca1)
+                    elif loca1[1] < target[1]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if left_slope < target_slope:
+                            lot.append(loca1)
 
         if lot == []:
             return sol
         else:
-            itr = 0
+            distance = 10000
             for b in range(len(lot)):
-                if itr < lot[b][2]:
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
                     sol.loc[0] = lot[b]
-                    itr = lot[b][2]
+                    distance = new_distance
             return sol
 
     def s1_right_top_search(self, rack, column, floor, sol):
@@ -341,23 +402,23 @@ if __name__ == '__main__':
 
     make = ActionGenerator()
     for a in range(floor):
-        print make.change_to_two_dimension1(rs, column, floor)[floor - a - 1], '    ', make.change_to_two_dimension2(rs, column, floor)[floor - 1 - a]
+        print (floor - a - 1), make.change_to_two_dimension1(rs, column, floor)[floor - a - 1], '    ', make.change_to_two_dimension2(rs, column, floor)[floor - 1 - a]
 
     ts = action.action()
     sol = ts.dijk(rs, column, floor, [664, 277], [84, 760])[0]
-    print sol.type, sol.oper, sol.loc
+    print column, floor, sol.type, sol.oper, sol.loc
 
     #for i in range(0, 8):
     #    new_sol = sol
     #    print make.s1_generating_idx(rs, column, floor, new_sol, i)[0].loc, make.s1_generating_idx(rs, column, floor, new_sol, i)[1]
 
-    # print make.s1_right_search(rs, column, floor, sol).loc
+    print make.s1_right_search(rs, column, floor, sol).loc
     # print make.s1_left_search(rs, column, floor, sol).loc
     # print make.s1_top_search(rs, column, floor, sol).loc
     # print make.s1_bottom_search(rs, column, floor, sol).loc
     # print make.s1_right_top_search(rs, column, floor, sol).loc
     # print make.s1_right_bottom_search(rs, column, floor, sol).loc
-    print make.s1_left_top_search(rs, column, floor, sol).loc
+    # print make.s1_left_top_search(rs, column, floor, sol).loc
     # print make.s1_left_bottom_search(rs, column, floor, sol).loc
     # print make.s1_next_search(rs, column, floor, sol).loc
     # print make.s1_item_search(rs, column, floor, sol).loc
