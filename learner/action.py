@@ -470,7 +470,5 @@ if __name__ == '__main__':
         for j in range(len(a.type)):
             if rs[i] == a.type[j] and a.oper[j] == 'R':
                 print ts.loca_calculate(i,column,floor), a.type[j]
-    idx = 0 * column * floor + 2 * column + 9
-    print rs[idx]
 
 
