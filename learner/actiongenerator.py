@@ -36,7 +36,7 @@ class ActionGenerator(object):
         return result
 
     def s1_right_search(self, rack, column, floor, sol):
-        # leftward direction search
+        # rightward direction search
 
         target = sol.loc[0]
         lot = []
@@ -111,7 +111,7 @@ class ActionGenerator(object):
             return sol
 
     def s1_top_search(self, rack, column, floor, sol):
-        # leftward direction search
+        # top direction search
 
         target = sol.loc[0]
         lot = []
@@ -149,7 +149,7 @@ class ActionGenerator(object):
             return sol
 
     def s1_bottom_search(self, rack, column, floor, sol):
-        # leftward direction search
+        # bottom direction search
 
         target = sol.loc[0]
         lot = []
@@ -185,7 +185,7 @@ class ActionGenerator(object):
             return sol
 
     def s1_right_top_search(self, rack, column, floor, sol):
-        # close to I/O point
+        # upper right search
         target = sol.loc[0]
         lot = []
 
@@ -207,7 +207,7 @@ class ActionGenerator(object):
             return sol
 
     def s1_right_bottom_search(self, rack, column, floor, sol):
-        # close to I/O point
+        # below right search
         target = sol.loc[0]
         lot = []
 
@@ -229,7 +229,7 @@ class ActionGenerator(object):
             return sol
 
     def s1_left_top_search(self, rack, column, floor, sol):
-        # close to I/O point
+        # upper left search
         target = sol.loc[0]
         lot = []
 
@@ -251,7 +251,7 @@ class ActionGenerator(object):
             return sol
 
     def s1_left_bottom_search(self, rack, column, floor, sol):
-        # close to I/O point
+        # below left search
         target = sol.loc[0]
         lot = []
 
@@ -337,6 +337,278 @@ class ActionGenerator(object):
                     distance = new_distance
             return sol
 
+    def r2_right_search(self, rack, column, floor, sol):
+        # rightward direction search
+
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        lot = []
+        max_col = column - 1
+        max_flo = floor - 1
+        dif_col = max_col - target[1]
+        dif_flo = max_flo - target[2]
+        upper_slope = float(dif_flo) / dif_col
+        lower_slope = float(-target[2]) / dif_col
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] > target[1]:
+                    if loca1[2] == target[2]:
+                        lot.append(loca1)
+                    elif loca1[2] > target[2]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if target_slope < upper_slope:
+                            lot.append(loca1)
+                    elif loca1[2] < target[2]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if lower_slope < target_slope:
+                            lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def r2_left_search(self, rack, column, floor, sol):
+        # leftward direction search
+
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        lot = []
+        max_flo = floor - 1
+        dif_col = - target[1]
+        dif_flo = max_flo - target[2]
+        upper_slope = float(dif_flo) / dif_col
+        lower_slope = float(-target[2]) / dif_col
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] < target[1]:
+                    if loca1[2] == target[2]:
+                        lot.append(loca1)
+                    elif loca1[2] > target[2]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if upper_slope < target_slope:
+                            lot.append(loca1)
+                    elif loca1[2] < target[2]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if lower_slope > target_slope:
+                            lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def r2_top_search(self, rack, column, floor, sol):
+        # top direction search
+
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        lot = []
+        max_col = column - 1
+        max_flo = floor - 1
+        dif_col = max_col - target[1]
+        dif_flo = max_flo - target[2]
+        right_slope = float(dif_flo) / dif_col
+        left_slope = float(dif_flo) / (- target[1])
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[2] > target[2]:
+                    if loca1[1] == target[1]:
+                        lot.append(loca1)
+                    elif loca1[1] > target[1]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if target_slope > right_slope:
+                            lot.append(loca1)
+                    elif loca1[1] < target[1]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if left_slope < target_slope:
+                            lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def r2_bottom_search(self, rack, column, floor, sol):
+        # bottom direction search
+
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        lot = []
+        max_col = column - 1
+        dif_col = max_col - target[1]
+        right_slope = float(- target[2]) / dif_col
+        left_slope = float(- target[2]) / (- target[1])
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[2] < target[2]:
+                    if loca1[1] == target[1]:
+                        lot.append(loca1)
+                    elif loca1[1] > target[1]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if target_slope > right_slope:
+                            lot.append(loca1)
+                    elif loca1[1] < target[1]:
+                        target_slope = float((loca1[2] - target[2])) / (loca1[1] - target[1])
+                        if left_slope < target_slope:
+                            lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def r2_right_top_search(self, rack, column, floor, sol):
+        # upper right search
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        lot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] > target[1] and loca1[2] > target[2]:
+                    lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def r2_right_bottom_search(self, rack, column, floor, sol):
+        # below right search
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        lot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] > target[1] and loca1[2] < target[2]:
+                    lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def r2_left_top_search(self, rack, column, floor, sol):
+        # upper left search
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        lot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] < target[1] and loca1[2] > target[2]:
+                    lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+            return sol
+
+    def r2_left_bottom_search(self, rack, column, floor, sol):
+        # below left search
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        lot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if loca1[1] < target[1] and loca1[2] < target[2]:
+                    lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 0
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - 0), 2) + math.pow((lot[b][2] - 0), 2)
+                if distance < new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+
+            return sol
+
+    def r2_before_search(self, rack, column, floor, sol):
+        # close to before point
+        target = sol.loc[3]
+        target_item = sol.type[3]
+        before_node = sol.loc[2]
+        lot = []
+
+        for a, item1 in enumerate(rack):
+            if item1 == target_item:
+                loca1 = self.loca_calculate(a, column, floor)
+                if min(target[1], before_node[1]) < loca1[1] < max(target[1], before_node[1]) and \
+                                        min(target[2], before_node[2]) < loca1[2] < max(target[2], before_node[2]):
+                    lot.append(loca1)
+
+        if lot == []:
+            return sol
+        else:
+            distance = 10000
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - target[1]), 2) + math.pow((lot[b][2] - target[2]), 2)
+                if distance > new_distance:
+                    sol.loc[3] = lot[b]
+                    distance = new_distance
+
+            return sol
+
     def generating_idx(self, rack, column, floor, sol, idx):
         cal = reward.reward()
         if idx == 0:
@@ -405,20 +677,23 @@ if __name__ == '__main__':
         print (floor - a - 1), make.change_to_two_dimension1(rs, column, floor)[floor - a - 1], '    ', make.change_to_two_dimension2(rs, column, floor)[floor - 1 - a]
 
     ts = action.action()
-    sol = ts.dijk(rs, column, floor, [664, 277], [84, 760])[0]
+    sol = ts.dijk(rs, column, floor, [664, 277], [84, 753])[0]
     print column, floor, sol.type, sol.oper, sol.loc
 
-    #for i in range(0, 8):
+    # S1 has 10 actions
+    # R2 has 9 actions
+
+    # for i in range(0, 8):
     #    new_sol = sol
     #    print make.s1_generating_idx(rs, column, floor, new_sol, i)[0].loc, make.s1_generating_idx(rs, column, floor, new_sol, i)[1]
 
-    print make.s1_right_search(rs, column, floor, sol).loc
-    # print make.s1_left_search(rs, column, floor, sol).loc
-    # print make.s1_top_search(rs, column, floor, sol).loc
-    # print make.s1_bottom_search(rs, column, floor, sol).loc
-    # print make.s1_right_top_search(rs, column, floor, sol).loc
-    # print make.s1_right_bottom_search(rs, column, floor, sol).loc
-    # print make.s1_left_top_search(rs, column, floor, sol).loc
-    # print make.s1_left_bottom_search(rs, column, floor, sol).loc
+    # print make.r2_right_search(rs, column, floor, sol).loc
+    # print make.r2_left_search(rs, column, floor, sol).loc
+    # print make.r2_top_search(rs, column, floor, sol).loc
+    # print make.r2_bottom_search(rs, column, floor, sol).loc
+    # print make.r2_right_top_search(rs, column, floor, sol).loc
+    # print make.r2_right_bottom_search(rs, column, floor, sol).loc
+    # print make.r2_left_top_search(rs, column, floor, sol).loc
+    # print make.r2_left_bottom_search(rs, column, floor, sol).loc
     # print make.s1_next_search(rs, column, floor, sol).loc
     # print make.s1_item_search(rs, column, floor, sol).loc
