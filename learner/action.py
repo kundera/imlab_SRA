@@ -55,7 +55,7 @@ class action(object):
 
 
     def dijk_ssr1r2(self, rs, column, floor, outputs):# ex :outputs = [10,18]
-        G = nx.Graph()
+        G = nx.DiGraph()
         G.add_node('start', loca=[0, 0, 0], phase=0)
         G.add_node('end', loca=[0, 0, 0], phase=5)
         init_loca = [0, 0, 0]
@@ -125,7 +125,7 @@ class action(object):
         for n, nbrs in G.adjacency_iter():
             for nbr, eattr in nbrs.items():
                 data = eattr['weight']
-                if data == 0.0:
+                if int(data) == 0:
                     G.remove_edge('%s' % n, '%s' % nbr)
 
         #print G.node
@@ -141,7 +141,7 @@ class action(object):
         return 'SSR1R2', path, length, self.print_dijk(G), io
 
     def dijk_ssr2r1(self, rs, column, floor, outputs):  # ex :outputs = [10,18]
-        G = nx.Graph()
+        G = nx.DiGraph()
         G.add_node('start', loca=[0, 0, 0], phase=0)
         G.add_node('end', loca=[0, 0, 0], phase=5)
         init_loca = [0, 0, 0]
@@ -222,7 +222,7 @@ class action(object):
         return 'SSR2R1', path, length, self.print_dijk(G), io
 
     def dijk_sr1sr2(self, rs, column, floor, outputs): # ex :outputs = ['10','18']
-        G = nx.Graph()
+        G = nx.DiGraph()
         G.add_node('start', loca=[0, 0, 0], phase=0)
         G.add_node('end', loca=[0, 0, 0], phase=5)
         init_loca = [0, 0, 0]
@@ -302,7 +302,7 @@ class action(object):
         return 'SR1SR2', path, length, self.print_dijk(G),io
 
     def dijk_sr2sr1(self, rs, column, floor, outputs):# ex :outputs = [10,18]
-        G = nx.Graph()
+        G = nx.DiGraph()
         G.add_node('start', loca=[0, 0, 0], phase=0)
         G.add_node('end', loca=[0, 0, 0], phase=5)
         init_loca = [0, 0, 0]
@@ -455,13 +455,22 @@ class action(object):
 
 
 if __name__ == '__main__':
-    test = problemreader.ProblemReader(15)
+    test = problemreader.ProblemReader(10)
     rs = test.get_problem(1).rack.status
     column = test.get_problem(1).rack.column
     floor = test.get_problem(1).rack.floor
 
     ts = action()
+    print rs
+    a,b = ts.dijk(rs,column,floor,[123,456],[84,753])
 
-    print ts.dijk(rs,column,floor,[700,392],[3,0])
-    print ts.dijk_all(rs,column,floor,[700,392],[3,0])
+
+    print a.loc,a.oper,a.type
+    for i in range(len(rs)):
+        for j in range(len(a.type)):
+            if rs[i] == a.type[j] and a.oper[j] == 'R':
+                print ts.loca_calculate(i,column,floor), a.type[j]
+    idx = 0 * column * floor + 2 * column + 9
+    print rs[idx]
+
 
