@@ -535,10 +535,11 @@ class ActionGenerator(object):
         for iter in range(4):
             result = self.generating_idx(rack, column, floor, sol, idx, iter)
 
-        return result, iter
+        return result
 
     def oper_fixed_random_action(self, rack, column, floor, sol, iter):
         # generate random action with fixed operation
+        # unnecessary
 
         result = []
         temp = sol
@@ -546,7 +547,7 @@ class ActionGenerator(object):
         for idx in range(12):
             result.append(self.generating_idx(rack, column, floor, temp, idx, iter).loc)
 
-        return result, idx
+        return result
 
 if __name__ == '__main__':
 
@@ -569,15 +570,10 @@ if __name__ == '__main__':
     print sol.loc
     print
 
-    # print make.before_search(rs, column, floor, sol, 0).loc
-    # print make.before_search(rs, column, floor, sol, 1).loc
-    # print make.before_search(rs, column, floor, sol, 2).loc
-    # print make.before_search(rs, column, floor, sol, 3).loc
+    print make.generating_idx(rs, column, floor, sol, 1, 1)
 
-    # print make.generating_idx(rs, column, floor, sol, 1, 1)
     # result = make.full_random_action(rs, column, floor, sol)
     # result = make.action_fixed_action(rs, column, floor, sol, 11)
     # result = make.oper_fixed_random_action(rs, column, floor, sol, 0)
 
-    for a in range(12):
-        print make.generating_idx(rs, column, floor, sol, a, 0).loc
+    # print result.loc
