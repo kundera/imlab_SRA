@@ -18,13 +18,13 @@ class ASRSplayer(object):
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
     MINI_BATCH_SIZE = 32  # size of mini batches
     STATE_FRAMES = 6  # number of frames to store in the state
-    COLUMN, FLOOR = (80,80)
+    COLUMN, FLOOR = (25,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
     LEARN_RATE = 1e-6
     ITERATION = 10000
 
 
-    def __init__(self):
+    def __init__(self, _observations):
 
         self._session = tf.Session()
         self._input_layer, self._output_layer = ASRSplayer._create_network()
@@ -44,7 +44,7 @@ class ASRSplayer(object):
         self._probability_of_random_action = self.INITIAL_RANDOM_ACTION_PROB
 
         self._session.run(tf.initialize_all_variables())
-        #self._observations = _observations
+        self._observations = _observations
 
 
     def _train(self, training_data):
@@ -54,6 +54,7 @@ class ASRSplayer(object):
         while iter < self.ITERATION:
 
             total_cycletime = 0.0
+            actions = [0 for i in range(len(self.ACTIONS_COUNT))]
 
             sht = training_data.shuttleNum
             clm = training_data.columnNum
@@ -84,6 +85,8 @@ class ASRSplayer(object):
                     if self._last_action[i] == 1:
                         action_chosen = i
                         break
+
+                actions[action_chosen] += 1
 
                 at = action.action()
                 solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, action_chosen)
@@ -152,7 +155,7 @@ class ASRSplayer(object):
 
                 total_cycletime += cycletime
             iter += 1
-            print iter, total_cycletime
+            print iter, total_cycletime, actions
 
 
     def _choose_next_action(self):
@@ -187,14 +190,12 @@ class ASRSplayer(object):
     @staticmethod
     def _create_network():
         # network weights
-        convolution_weights_1 = tf.Variable(tf.truncated_normal([8, 8, ASRSplayer.STATE_FRAMES, 32], stddev=0.01))
+
+        convolution_weights_1 = tf.Variable(tf.truncated_normal([4, 4, ASRSplayer.STATE_FRAMES, 32], stddev=0.01))
         convolution_bias_1 = tf.Variable(tf.constant(0.01, shape=[32]))
 
-        convolution_weights_2 = tf.Variable(tf.truncated_normal([4, 4, 32, 64], stddev=0.01))
+        convolution_weights_2 = tf.Variable(tf.truncated_normal([3, 3, 32, 64], stddev=0.01))
         convolution_bias_2 = tf.Variable(tf.constant(0.01, shape=[64]))
-
-        convolution_weights_3 = tf.Variable(tf.truncated_normal([3, 3, 64, 64], stddev=0.01))
-        convolution_bias_3 = tf.Variable(tf.constant(0.01, shape=[64]))
 
         feed_forward_weights_1 = tf.Variable(tf.truncated_normal([1600, 256], stddev=0.01))
         feed_forward_bias_1 = tf.Variable(tf.constant(0.01, shape=[256]))
@@ -206,24 +207,20 @@ class ASRSplayer(object):
                                                ASRSplayer.STATE_FRAMES])
 
         hidden_convolutional_layer_1 = tf.nn.relu(
-            tf.nn.conv2d(input_layer, convolution_weights_1, strides=[1, 4, 4, 1],
+            tf.nn.conv2d(input_layer, convolution_weights_1, strides=[1, 2, 2, 1],
                          padding="SAME") + convolution_bias_1)
 
         hidden_max_pooling_layer = tf.nn.max_pool(hidden_convolutional_layer_1, ksize=[1, 2, 2, 1],
                                                   strides=[1, 2, 2, 1], padding="SAME")
 
         hidden_convolutional_layer_2 = tf.nn.relu(
-            tf.nn.conv2d(hidden_max_pooling_layer, convolution_weights_2, strides=[1, 2, 2, 1],
-                         padding="SAME") + convolution_bias_2)
+            tf.nn.conv2d(hidden_max_pooling_layer, convolution_weights_2,
+                         strides=[1, 1, 1, 1], padding="SAME") + convolution_bias_2)
 
-        hidden_convolutional_layer_3 = tf.nn.relu(
-            tf.nn.conv2d(hidden_convolutional_layer_2, convolution_weights_3,
-                         strides=[1, 1, 1, 1], padding="SAME") + convolution_bias_3)
-
-        hidden_convolutional_layer_3_flat = tf.reshape(hidden_convolutional_layer_3, [-1, 1600])
+        hidden_convolutional_layer_2_flat = tf.reshape(hidden_convolutional_layer_2, [-1, 1600])
 
         final_hidden_activations = tf.nn.relu(
-            tf.matmul(hidden_convolutional_layer_3_flat, feed_forward_weights_1) + feed_forward_bias_1)
+            tf.matmul(hidden_convolutional_layer_2_flat, feed_forward_weights_1) + feed_forward_bias_1)
 
         output_layer = tf.matmul(final_hidden_activations, feed_forward_weights_2) + feed_forward_bias_2
 
