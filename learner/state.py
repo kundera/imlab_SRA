@@ -2,54 +2,60 @@ def get_storage_binary(rack):
     result = []
     for i in range(len(rack)):
         if rack[i] == -1:
-            result.append(0.0)
-        else:
             result.append(1.0)
+        else:
+            result.append(0.0)
     return result
 
-def get_storage_ternary(rack_status, order):
+
+def get_storage_ternary(rack, input):
     results = []
-    for i in solution.split('/'):
-        if i[len(i)-1] == 'S':
-            result = ''
-            item_type = i.split('_')[1]
-            for j in rack_status.split(','):
-                if j == -1 :
-                    result += '0.0'
-
-                elif j == item_type:
-                    result += '0.5'
-                else:
-                    result += '1.0'
-                result += ','
-            results.append(result[0:len(result)-1])
-
+    for i in range(len(input)):
+        result = []
+        for j in range(len(rack)):
+            if rack[j] == -1:
+                result.append(1.0)
+            elif rack[j] == input[i]:
+                result.append(0.5)
+            else:
+                result.append(0.0)
+        results.append(result)
     return results
 
-def get_retrieval_binary(rack_status, order):
-    results = []
-    for i in solution.split('/'):
-        if i[len(i) - 1] == 'R':
-            result = ''
-            item_type = i.split('_')[1]
-            for j in rack_status.split(','):
-                if j == item_type:
-                    result += '1.0'
-                else:
-                    result += '0.0'
-                result += ','
-            results.append(result[0:len(result)-1])
 
+def get_retrieval_binary(rack, output):
+    results = []
+    for i in range(len(output)):
+        result = []
+        for j in range(len(rack)):
+            if rack[j] == output[i]:
+                result.append(1.0)
+            else:
+                result.append(0.0)
+        results.append(result)
     return results
 
-def get_retrieval_ternary(rack_status, order):
+
+def get_retrieval_2in1(rack, output):
+    result = []
+    for i in range(len(rack)):
+        for j in range(len(output)):
+            if rack[i] == output[j]:
+                result.append(1.0)
+                break
+            else:
+                result.append(0.0)
+    return result
+
+
+def get_retrieval_ternary(rack, output):
     result = ''
     retrieval = []
-    for i in solution.split('/'):
+    for i in output.split('/'):
         if i[len(i)-1] == 'R':
             retrieval.append(i.split('_')[1])
 
-    for j in rack_status.split(','):
+    for j in rack.split(','):
         boolean = True
         for k in retrieval:
             if j == k:
@@ -62,4 +68,6 @@ def get_retrieval_ternary(rack_status, order):
     return result[0:len(result)-1]
 
 if __name__ == '__main__':
-    print get_retrieval_binary('319,189,716,379', '0,1,0_319_S/1,15,2_189_R/1,15,2_716_S/1,2,5_379_R')
+    print get_storage_ternary()
+    print get_retrieval_binary()
+    print get_retrieval_2in1()

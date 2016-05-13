@@ -24,7 +24,7 @@ class train(object):
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
     SAVE_EVERY_X_STEPS = 10000
     LEARN_RATE = 1e-6
-    STORE_SCORES_LEN = 200.
+
 
     def __init__(self):
 
