@@ -80,6 +80,4 @@ class ProblemWithSolutionReader(ProblemReader):
 
 if __name__ == '__main__':
     test = ProblemReader(20)
-    for i in test.get_problems(3):
-        print i.rack.status
-    test.get_problem(1)
+    print len(test.get_problem(1).output)
