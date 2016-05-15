@@ -52,7 +52,7 @@ class ObservationGenerator(object):
         simul = nextstate.simul()
 
         for idx in range(4):
-
+            rs1 = rs
             for i in range(len(input) / 2):
                 k = i + 1
                 inputs = input[(k * 2 - 2):k * 2]
@@ -119,7 +119,7 @@ class ObservationGenerator(object):
         ac = action.action()
 
         for i in range(1,12):
-
+            rs1 = rs
             for j in range(len(input) / 2):
                 k = j + 1
                 inputs = input[(k * 2 - 2):k * 2]
@@ -188,7 +188,7 @@ class ObservationGenerator(object):
 
 
         for i in range(4):
-
+            rs1 = rs
             for j in range(len(input) / 2):
                 k = j + 1
                 inputs = input[(k * 2 - 2):k * 2]
