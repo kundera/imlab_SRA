@@ -1,6 +1,7 @@
 from problemIO import problemreader
 from learner import solution
 from learner import action
+from learner import actiongenerator
 
 
 
@@ -37,35 +38,35 @@ class simul(object):
 
     def change_rs(self, rs, column, floor, sol):
                   # rs format : [-1,1,2,3,4,2,-1]
-                  # order_raw format : [[[1,0,0],[1,0,1],[1,0,1],[1,4,1]], [59,51,68,1], ['S','R','S','R']]
 
         rs2 = rs
         rack_size_h = column
         rack_size_v = floor
-        sol_loc = [sol.loc]
 
         for action in range(len(sol.loc)):
             loca = (rack_size_h * rack_size_v * sol.loc[action][0]) + (rack_size_v * sol.loc[action][1]) + \
                    sol.loc[action][2]
 
             if sol.oper[action] == 'S':
-                rs2[loca] = sol.type[action]
+
+                rs2.insert(loca,sol.type[action])
+                rs2.pop(loca+1)
 
             elif sol.oper[action] == 'R':
-                rs2[loca] = -1
+
+                rs2.insert(loca, -1)
+                rs2.pop(loca + 1)
 
         return rs2
 
 
 if __name__ == '__main__':
-    test = problemreader.ProblemReader(15)
+    test = problemreader.ProblemReader(20)
     rs = test.get_problem(1).rack.status
     column = test.get_problem(1).rack.column
     floor = test.get_problem(1).rack.floor
+    input = test.get_problem(1).input
+    output = test.get_problem(1).output
+    solu,ct = action.action().dijk(rs,column,floor,input[0:2],output[0:2])
 
-    test1 = simul()
 
-    ts = action.action()
-    a,b = ts.dijk(rs, column, floor, [700, 392], [3, 0])
-
-    print test1.change_rs(rs,column,floor,a)

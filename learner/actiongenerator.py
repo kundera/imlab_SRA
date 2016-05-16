@@ -47,6 +47,12 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and new_sol.oper[temp1] == target_seq:
+                other_loc = new_sol.loc[temp1]
+
+        excep_num = other_loc[0]*column*floor + other_loc[1]*column + other_loc[2]
+
         lot = []
         max_col = column - 1
         max_flo = floor - 1
@@ -54,7 +60,7 @@ class ActionGenerator(object):
         dif_flo = max_flo - target_loc[2]
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[1] > target_loc[1]:
                     if loca1[2] == target_loc[2]:
@@ -94,13 +100,19 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
         max_flo = floor - 1
         dif_col = - target_loc[1]
         dif_flo = max_flo - target_loc[2]
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[1] < target_loc[1]:
                     if loca1[2] == target_loc[2]:
@@ -140,6 +152,12 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
         max_col = column - 1
         max_flo = floor - 1
@@ -147,7 +165,7 @@ class ActionGenerator(object):
         dif_flo = max_flo - target_loc[2]
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[2] > target_loc[2]:
                     if loca1[1] == target_loc[1]:
@@ -187,12 +205,18 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
         max_col = column - 1
         dif_col = max_col - target_loc[1]
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[2] < target_loc[2]:
                     if loca1[1] == target_loc[1]:
@@ -231,10 +255,16 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[1] > target_loc[1] and loca1[2] > target_loc[2]:
                     lot.append(loca1)
@@ -262,10 +292,16 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[1] > target_loc[1] and loca1[2] < target_loc[2]:
                     lot.append(loca1)
@@ -293,10 +329,16 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[1] < target_loc[1] and loca1[2] > target_loc[2]:
                     lot.append(loca1)
@@ -324,10 +366,16 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if loca1[1] < target_loc[1] and loca1[2] < target_loc[2]:
                     lot.append(loca1)
@@ -355,6 +403,12 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
 
         if idx == 0:
@@ -363,7 +417,7 @@ class ActionGenerator(object):
             before_node = sol.loc[idx - 1]
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if min(target_loc[1], before_node[1]) < loca1[1] < max(target_loc[1], before_node[1]) \
                         and min(target_loc[2], before_node[2]) < loca1[2] < max(target_loc[2], before_node[2]):
@@ -392,6 +446,12 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             target_num = target_type
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
 
         if idx == 3:
@@ -400,7 +460,7 @@ class ActionGenerator(object):
             next_node = sol.loc[idx + 1]
 
         for a, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and a != excep_num:
                 loca1 = self.loca_calculate(a, column, floor)
                 if min(target_loc[1], next_node[1]) < loca1[1] < max(target_loc[1], next_node[1]) \
                         and min(target_loc[2], next_node[2]) < loca1[2] < max(target_loc[2], next_node[2]):
@@ -429,6 +489,12 @@ class ActionGenerator(object):
         elif target_seq == 'R' or target_seq == 'r':
             return sol
 
+        for temp1 in range(4):
+            if idx != temp1 and sol.oper[temp1] == target_seq:
+                other_loc = sol.loc[temp1]
+
+        excep_num = other_loc[0] * column * floor + other_loc[1] * column + other_loc[2]
+
         lot = []
         sublot = []
 
@@ -448,7 +514,7 @@ class ActionGenerator(object):
         target_to_go[2] = float(target_to[2]) / len(sublot)
 
         for c, item1 in enumerate(rack):
-            if item1 == target_num:
+            if item1 == target_num and c != excep_num:
                 loca1 = self.loca_calculate(c, column, floor)
                 if min(target_loc[1], target_to_go[1]) < loca1[1] < max(target_loc[1], target_to_go[1]) \
                         and min(target_loc[2], target_to_go[2]) < loca1[2] < max(target_loc[2], target_to_go[2]):
@@ -534,10 +600,11 @@ class ActionGenerator(object):
         for iter in range(4):
             result = self.generating_idx(rack, column, floor, sol, idx, iter)
 
-        return result, iter
+        return result
 
     def oper_fixed_random_action(self, rack, column, floor, sol, iter):
         # generate random action with fixed operation
+        # unnecessary
 
         result = []
         temp = sol
@@ -545,7 +612,7 @@ class ActionGenerator(object):
         for idx in range(12):
             result.append(self.generating_idx(rack, column, floor, temp, idx, iter).loc)
 
-        return result, idx
+        return result
 
 if __name__ == '__main__':
 
@@ -568,15 +635,10 @@ if __name__ == '__main__':
     print sol.loc
     print
 
-    # print make.before_search(rs, column, floor, sol, 0).loc
-    # print make.before_search(rs, column, floor, sol, 1).loc
-    # print make.before_search(rs, column, floor, sol, 2).loc
-    # print make.before_search(rs, column, floor, sol, 3).loc
+    print make.generating_idx(rs, column, floor, sol, 1, 1)
 
-    # print make.generating_idx(rs, column, floor, sol, 1, 1)
     # result = make.full_random_action(rs, column, floor, sol)
     # result = make.action_fixed_action(rs, column, floor, sol, 11)
     # result = make.oper_fixed_random_action(rs, column, floor, sol, 0)
 
-    for a in range(12):
-        print make.generating_idx(rs, column, floor, sol, a, 0).loc
+    # print result.loc
