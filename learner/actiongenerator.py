@@ -469,7 +469,6 @@ class ActionGenerator(object):
     def generating_idx(self, rack, column, floor, sol, idx, iter):
         # idx means action type
         # iter means operate time
-
         if idx == 0:  # original solution
             return sol
 
