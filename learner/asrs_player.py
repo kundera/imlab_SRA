@@ -9,12 +9,13 @@ from simulator import nextstate
 import action
 import state
 import actiongenerator
+from problemIO import obs_from_db
 
 class ASRSplayer(object):
     ACTIONS_COUNT = 4  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
     EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
-    INITIAL_RANDOM_ACTION_PROB = 1.0  # starting chance of an action being random
+    INITIAL_RANDOM_ACTION_PROB = 0.1  # starting chance of an action being random
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
     MINI_BATCH_SIZE = 32  # size of mini batches
     STATE_FRAMES = 6  # number of frames to store in the state
@@ -47,14 +48,16 @@ class ASRSplayer(object):
         self._observations = _observations
 
 
-    def _train(self, training_data):
-
+    def _train(self, training_data_idx):
         iter = 0
 
         while iter < self.ITERATION:
 
             total_cycletime = 0.0
-            actions = [0 for i in range(len(self.ACTIONS_COUNT))]
+            total_action = [0 for _ in range(self.ACTIONS_COUNT)]
+
+            pr = problemreader.ProblemReader(training_data_idx)
+            training_data = pr.get_problem(1)
 
             sht = training_data.shuttleNum
             clm = training_data.columnNum
@@ -79,6 +82,9 @@ class ASRSplayer(object):
             cycleNum = training_data.requestLength / sht
 
             for order_idx in range(cycleNum):
+                input = training_data.input[order_idx * sht:order_idx * sht + sht]
+                output = training_data.output[order_idx * sht:order_idx * sht + sht]
+
                 self._last_action = self._choose_next_action()
 
                 for i in range(len(self._last_action)):
@@ -86,7 +92,7 @@ class ASRSplayer(object):
                         action_chosen = i
                         break
 
-                actions[action_chosen] += 1
+                total_action[action_chosen] += 1
 
                 at = action.action()
                 solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, action_chosen)
@@ -155,7 +161,7 @@ class ASRSplayer(object):
 
                 total_cycletime += cycletime
             iter += 1
-            print iter, total_cycletime, actions
+            print iter, total_cycletime, total_action
 
 
     def _choose_next_action(self):
@@ -191,7 +197,7 @@ class ASRSplayer(object):
     def _create_network():
         # network weights
 
-        convolution_weights_1 = tf.Variable(tf.truncated_normal([4, 4, ASRSplayer.STATE_FRAMES, 32], stddev=0.01))
+        convolution_weights_1 = tf.Variable(tf.truncated_normal([6, 2, ASRSplayer.STATE_FRAMES, 32], stddev=0.01))
         convolution_bias_1 = tf.Variable(tf.constant(0.01, shape=[32]))
 
         convolution_weights_2 = tf.Variable(tf.truncated_normal([3, 3, 32, 64], stddev=0.01))
@@ -208,7 +214,7 @@ class ASRSplayer(object):
 
         hidden_convolutional_layer_1 = tf.nn.relu(
             tf.nn.conv2d(input_layer, convolution_weights_1, strides=[1, 2, 2, 1],
-                         padding="SAME") + convolution_bias_1)
+                         padding="VALID") + convolution_bias_1)
 
         hidden_max_pooling_layer = tf.nn.max_pool(hidden_convolutional_layer_1, ksize=[1, 2, 2, 1],
                                                   strides=[1, 2, 2, 1], padding="SAME")
@@ -228,6 +234,6 @@ class ASRSplayer(object):
 
 
 if __name__ == '__main__':
-    pl = ASRSplayer()
-    pr = problemreader.ProblemReader(20)
-    pl._train(pr.get_problem(1))
+    obs = obs_from_db.OBSfromDB(20)
+    pl = ASRSplayer(obs.get_obs(24000))
+    pl._train(20)
