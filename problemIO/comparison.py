@@ -1,6 +1,8 @@
 from problemIO import problemreader
 from simulator import nextstate
 from learner import action
+import time
+import copy
 
 
 def dijk(test_data):
@@ -11,25 +13,35 @@ def dijk(test_data):
         clm = problem_set.columnNum
         flr = problem_set.floorNum
 
-        rack = problem_set.rack.status
+        rack = copy.deepcopy(problem_set.rack.status)
 
         cycleNum = problem_set.requestLength / sht
+
+        total_elapsed = 0.0
 
         for order_idx in range(cycleNum):
             input = problem_set.input[order_idx * sht:order_idx * sht + sht]
             output = problem_set.output[order_idx * sht:order_idx * sht + sht]
 
             at = action.action()
-            solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, 0)
-
+            start = time.time()
+            print input, output, rack
+            solution, cycletime = at.dijk(rack, clm, flr, input, output)
+            end = time.time()
             sim = nextstate.simul()
+
 
             rack = sim.change_rs(rack, clm, flr, solution)
 
+            elapsed = end - start
             total_cycletime += cycletime
-        print total_cycletime
+            total_elapsed += elapsed
+            if order_idx > 5:
+                break
 
+        print total_cycletime
+        print total_elapsed
 
 if __name__ == '__main__':
-    pr2 = problemreader.ProblemReader(20)
-    dijk(pr2.get_problems(3))
+    pr2 = problemreader.ProblemReader(200)
+    dijk(pr2.get_problems(10))

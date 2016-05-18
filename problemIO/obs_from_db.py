@@ -37,7 +37,7 @@ class OBSfromDB(object):
             last_action[row[1]] = 1
             input = map(int, row[2][1:-1].split(", "))
             output = map(int, row[3][1:-1].split(", "))
-            rwd = row[4] / reward.reward().get_maxtime(clm, flr, sht)
+            rwd = - row[4] / reward.reward().get_maxtime(clm, flr, sht)
             current_state = map(int, row[5][1:-1].split(", "))
             if row[6] == 'O':
                 terminal = True

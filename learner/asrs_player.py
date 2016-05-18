@@ -14,8 +14,8 @@ from problemIO import obs_from_db
 class ASRSplayer(object):
     ACTIONS_COUNT = 4  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
-    EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
-    INITIAL_RANDOM_ACTION_PROB = 0.1  # starting chance of an action being random
+    EXPLORE_STEPS = 2000.  # frames over which to anneal epsilon
+    INITIAL_RANDOM_ACTION_PROB = 1.0  # starting chance of an action being random
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
     MINI_BATCH_SIZE = 32  # size of mini batches
     STATE_FRAMES = 6  # number of frames to store in the state
@@ -121,7 +121,7 @@ class ASRSplayer(object):
                     terminal = False
 
                 # store the transition in previous_observations
-                self._observations.append((self._last_state, self._last_action, cycletime/reward.reward().get_maxtime\
+                self._observations.append((self._last_state, self._last_action, - cycletime/reward.reward().get_maxtime\
                     (clm, flr, sht), current_state, terminal))
 
                 self._observations.popleft()
