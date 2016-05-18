@@ -17,7 +17,7 @@ class ObservationGenerator(object):
 
 
     def make_table_dijk(self,tidx):
-        tablename = 'dijk_'+str(tidx)
+        tablename = 'dijk_'+str(tidx)+'_2action'
         con = MySQLdb.connect(self.DBAdress, self.DBID, self.DBPassward, self.DBName)
         cur = con.cursor()
         sql = "CREATE TABLE IF NOT EXISTS `%s`" \
@@ -45,7 +45,7 @@ class ObservationGenerator(object):
         input = test.get_problem(pidx).input
         output = test.get_problem(pidx).output
 
-        tablename = 'dijk_' + str(tidx)
+        tablename = 'dijk_'+str(tidx)+'_2action'
         con = MySQLdb.connect(self.DBAdress, self.DBID, self.DBPassward, self.DBName)
         cur = con.cursor()
 
@@ -60,8 +60,8 @@ class ObservationGenerator(object):
                 inputs = input[(k * 2 - 2):k * 2]
                 outputs = output[(k * 2 - 2):k * 2]
                 ac = action.action()
-                idx = random.randrange(0,4)
-                sol, cycletime = ac.dijk_idx(rs1, column, floor, inputs, outputs, idx)
+                idx = random.randrange(0,2)
+                sol, cycletime = ac.dijk_2_idx(rs1, column, floor, inputs, outputs, idx)
                 #rs2 = simul.change_rs(rs1, column, floor, sol)
                 if i == ((len(input) / 2) - 1):
                     cur.execute("""INSERT INTO """ + """%s""" % (
@@ -222,6 +222,6 @@ class ObservationGenerator(object):
 
 if __name__ == '__main__':
     a = ObservationGenerator()
-    #a.make_data_dijk(20,1)
-    #a.make_data_fixed_operation(20,1)
-    a.make_data_fixed_action(20,1)
+    a.make_data_dijk(20,1)
+    a.make_data_fixed_operation(20,1)
+    #a.make_data_fixed_action(20,1)
