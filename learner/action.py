@@ -492,21 +492,23 @@ class action(object):
         if idx == 0:
             a1, b1, c1, d1, e1 = self.dijk_ssr1r2(rs, column, floor, output)
             a2, b2, c2, d2, e2 = self.dijk_ssr2r1(rs, column, floor, output)
-            io = [io[0], io[1], io[2], io[3]]
             if c1 <= c2:
+                io = [io[0], io[1], io[2], io[3]]
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
             else:
+                io = [io[0], io[1], io[3], io[2]]
                 sol = solution.solution(d2, io, e2)
                 cycletime = c2
         elif idx == 1:
             a3, b3, c3, d3, e3 = self.dijk_sr1sr2(rs, column, floor, output)
             a4, b4, c4, d4, e4 = self.dijk_sr2sr1(rs, column, floor, output)
-            io = [io[0], io[1], io[3], io[2]]
             if c3 <= c4:
+                io = [io[0], io[2], io[1], io[3]]
                 sol = solution.solution(d3, io, e3)
                 cycletime = c3
             else:
+                io = [io[0], io[3], io[1], io[2]]
                 sol = solution.solution(d4, io, e4)
                 cycletime = c4
         return sol, cycletime

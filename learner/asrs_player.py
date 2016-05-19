@@ -10,15 +10,16 @@ import action
 import state
 import actiongenerator
 from problemIO import obs_from_db
+import copy
 
 class ASRSplayer(object):
-    ACTIONS_COUNT = 4  # number of valid actions.
+    ACTIONS_COUNT = 2  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
-    EXPLORE_STEPS = 2000.  # frames over which to anneal epsilon
-    INITIAL_RANDOM_ACTION_PROB = 1.0  # starting chance of an action being random
+    EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
+    INITIAL_RANDOM_ACTION_PROB = 0.1  # starting chance of an action being random
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
     MINI_BATCH_SIZE = 32  # size of mini batches
-    STATE_FRAMES = 6  # number of frames to store in the state
+    STATE_FRAMES = 10  # number of frames to store in the state
     COLUMN, FLOOR = (25,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
     LEARN_RATE = 1e-6
@@ -48,36 +49,33 @@ class ASRSplayer(object):
         self._observations = _observations
 
 
-    def _train(self, training_data_idx):
+    def _train(self, problem):
         iter = 0
 
+        training_data = copy.deepcopy(problem)
+
+        sht = training_data.shuttleNum
+        clm = training_data.columnNum
+        flr = training_data.floorNum
         while iter < self.ITERATION:
+            rack = training_data.rack.status[:]
 
             total_cycletime = 0.0
             total_action = [0 for _ in range(self.ACTIONS_COUNT)]
 
-            pr = problemreader.ProblemReader(training_data_idx)
-            training_data = pr.get_problem(1)
-
-            sht = training_data.shuttleNum
-            clm = training_data.columnNum
-            flr = training_data.floorNum
-
-            rack = training_data.rack.status
-
             input = training_data.input[0:0 + sht]
             output = training_data.output[0:0 + sht]
 
-            rack_str = state.get_storage_binary(rack)
-            rack_ret = state.get_retrieval_binary(rack, output)
+            foe = state.get_rack_full_or_empty(rack)
+            foe = self.change_to_two_dimension(foe, clm, flr)
+            son_in = state.get_rack_same_or_not(rack, input)
+            son_out = state.get_rack_same_or_not(rack, output)
 
-            rack_str = self.change_to_two_dimension(rack_str, clm, flr)
-            rack_sr = rack_str
-
-            for i in range(len(rack_ret)):
-                rack_sr = np.append(rack_sr, self.change_to_two_dimension(rack_ret[i], clm, flr), axis = 2)
-
-            self._last_state = rack_sr
+            for i in range(len(son_in)):
+                foe = np.append(foe, self.change_to_two_dimension(son_in[i], clm, flr), axis=2)
+            for i in range(len(son_out)):
+                foe = np.append(foe, self.change_to_two_dimension(son_out[i], clm, flr), axis=2)
+            self._last_state = foe[:, :, :]
 
             cycleNum = training_data.requestLength / sht
 
@@ -95,7 +93,7 @@ class ASRSplayer(object):
                 total_action[action_chosen] += 1
 
                 at = action.action()
-                solution, cycletime = at.dijk_idx(rack, clm, flr, input, output, action_chosen)
+                solution, cycletime = at.dijk_2_idx(rack, clm, flr, input, output, action_chosen)
 
                 sim = nextstate.simul()
 
@@ -104,16 +102,17 @@ class ASRSplayer(object):
                 input = training_data.input[order_idx * sht:order_idx * sht + sht]
                 output = training_data.output[order_idx * sht:order_idx * sht + sht]
 
-                rack_str = state.get_storage_binary(rack)
-                rack_ret = state.get_retrieval_binary(rack, output)
+                foe = state.get_rack_full_or_empty(rack)
+                foe = self.change_to_two_dimension(foe, clm, flr)
+                son_in = state.get_rack_same_or_not(rack, input)
+                son_out = state.get_rack_same_or_not(rack, output)
 
-                rack_str = self.change_to_two_dimension(rack_str, clm, flr)
-                rack_sr = rack_str
+                for i in range(len(son_in)):
+                    foe = np.append(foe, self.change_to_two_dimension(son_in[i], clm, flr), axis=2)
+                for i in range(len(son_out)):
+                    foe = np.append(foe, self.change_to_two_dimension(son_out[i], clm, flr), axis=2)
 
-                for i in range(len(rack_ret)):
-                    rack_sr = np.append(rack_sr, self.change_to_two_dimension(rack_ret[i], clm, flr), axis=2)
-
-                current_state = rack_sr
+                current_state = foe[:, :, :]
 
                 if order_idx == cycleNum-1:
                     terminal = True
@@ -161,7 +160,7 @@ class ASRSplayer(object):
 
                 total_cycletime += cycletime
             iter += 1
-            print iter, total_cycletime, total_action
+            print iter, self._probability_of_random_action, total_cycletime, total_action
 
 
     def _choose_next_action(self):
@@ -197,13 +196,13 @@ class ASRSplayer(object):
     def _create_network():
         # network weights
 
-        convolution_weights_1 = tf.Variable(tf.truncated_normal([6, 2, ASRSplayer.STATE_FRAMES, 32], stddev=0.01))
+        convolution_weights_1 = tf.Variable(tf.truncated_normal([4, 4, ASRSplayer.STATE_FRAMES, 32], stddev=0.01))
         convolution_bias_1 = tf.Variable(tf.constant(0.01, shape=[32]))
 
         convolution_weights_2 = tf.Variable(tf.truncated_normal([3, 3, 32, 64], stddev=0.01))
         convolution_bias_2 = tf.Variable(tf.constant(0.01, shape=[64]))
 
-        feed_forward_weights_1 = tf.Variable(tf.truncated_normal([1600, 256], stddev=0.01))
+        feed_forward_weights_1 = tf.Variable(tf.truncated_normal([2240, 256], stddev=0.01))
         feed_forward_bias_1 = tf.Variable(tf.constant(0.01, shape=[256]))
 
         feed_forward_weights_2 = tf.Variable(tf.truncated_normal([256, ASRSplayer.ACTIONS_COUNT], stddev=0.01))
@@ -214,7 +213,7 @@ class ASRSplayer(object):
 
         hidden_convolutional_layer_1 = tf.nn.relu(
             tf.nn.conv2d(input_layer, convolution_weights_1, strides=[1, 2, 2, 1],
-                         padding="VALID") + convolution_bias_1)
+                         padding="SAME") + convolution_bias_1)
 
         hidden_max_pooling_layer = tf.nn.max_pool(hidden_convolutional_layer_1, ksize=[1, 2, 2, 1],
                                                   strides=[1, 2, 2, 1], padding="SAME")
@@ -223,7 +222,7 @@ class ASRSplayer(object):
             tf.nn.conv2d(hidden_max_pooling_layer, convolution_weights_2,
                          strides=[1, 1, 1, 1], padding="SAME") + convolution_bias_2)
 
-        hidden_convolutional_layer_2_flat = tf.reshape(hidden_convolutional_layer_2, [-1, 1600])
+        hidden_convolutional_layer_2_flat = tf.reshape(hidden_convolutional_layer_2, [-1, 2240])
 
         final_hidden_activations = tf.nn.relu(
             tf.matmul(hidden_convolutional_layer_2_flat, feed_forward_weights_1) + feed_forward_bias_1)
@@ -235,5 +234,7 @@ class ASRSplayer(object):
 
 if __name__ == '__main__':
     obs = obs_from_db.OBSfromDB(20)
-    pl = ASRSplayer(obs.get_obs(24000))
-    pl._train(20)
+    pl = ASRSplayer(obs.get_obs(10000))
+    pr = problemreader.ProblemReader(20).get_problem(1)
+    pl._train(pr)
+

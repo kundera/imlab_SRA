@@ -25,9 +25,9 @@ class OBSfromDB(object):
         clm = 25
         flr = 20
         sht = 2
-        ACTIONS_COUNT = 4
+        ACTIONS_COUNT = 2
 
-        sql = 'SELECT rs, act, inp, outp, reward, rsprime, terminal FROM dijk_20 limit ' + str(no_obs)
+        sql = 'SELECT rs, act, inp, outp, reward, rsprime, terminal FROM dijk_20_2action limit ' + str(no_obs)
         cur.execute(sql)
         for i in range(cur.rowcount):
             row = cur.fetchone()
@@ -44,32 +44,31 @@ class OBSfromDB(object):
             else:
                 terminal = False
 
-            rack_str1 = state.get_storage_binary(last_state)
-            rack_ret1 = state.get_retrieval_binary(last_state, output)
+            foe = state.get_rack_full_or_empty(last_state)
+            foe = self.change_to_two_dimension(foe, clm, flr)
+            son_in = state.get_rack_same_or_not(last_state, input)
+            son_out = state.get_rack_same_or_not(last_state, output)
 
-            rack_str1 = self.change_to_two_dimension(rack_str1, clm, flr)
-            rack_sr1 = rack_str1
+            for i in range(len(son_in)):
+                foe = np.append(foe, self.change_to_two_dimension(son_in[i], clm, flr), axis=2)
+            for i in range(len(son_out)):
+                foe = np.append(foe, self.change_to_two_dimension(son_out[i], clm, flr), axis=2)
+            ls = foe[:,:,:]
 
-            for i in range(len(rack_ret1)):
-                rack_sr1 = np.append(rack_sr1, self.change_to_two_dimension(rack_ret1[i], clm, flr), axis=2)
+            foe = state.get_rack_full_or_empty(current_state)
+            foe = self.change_to_two_dimension(foe, clm, flr)
+            son_in = state.get_rack_same_or_not(current_state, input)
+            son_out = state.get_rack_same_or_not(current_state, output)
 
-            ls = rack_sr1
-
-            rack_str2 = state.get_storage_binary(current_state)
-            rack_ret2 = state.get_retrieval_binary(current_state, output)
-
-            rack_str2 = self.change_to_two_dimension(rack_str2, clm, flr)
-            rack_sr2 = rack_str2
-
-            for i in range(len(rack_ret2)):
-                rack_sr2 = np.append(rack_sr2, self.change_to_two_dimension(rack_ret2[i], clm, flr), axis=2)
-
-            cs = rack_sr2
+            for i in range(len(son_in)):
+                foe = np.append(foe, self.change_to_two_dimension(son_in[i], clm, flr), axis=2)
+            for i in range(len(son_out)):
+                foe = np.append(foe, self.change_to_two_dimension(son_out[i], clm, flr), axis=2)
+            cs = foe[:,:,:]
 
             observations.append((ls, last_action, rwd, cs, terminal))
         con.close()
         return observations
-
 
 
     def change_to_two_dimension(self, rack_status, columnNum, floorNum):
