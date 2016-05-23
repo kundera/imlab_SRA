@@ -270,8 +270,9 @@ class heuristics(object):
                 new_distance = math.pow((lot[f][1] - path[0][1]), 2) + math.pow((lot[f][2] - path[0][2]), 2)
                 if distance > new_distance:
                     path[1] = lot[f]
+                    path[2] = lot[f]
                     distance = new_distance
-
+        '''
         # s2
         lot = []
         for c, item2 in enumerate(rack):
@@ -289,6 +290,7 @@ class heuristics(object):
                 if distance > new_distance and path[0] != lot[d]:
                     path[2] = lot[d]
                     distance = new_distance
+        '''
 
         # r2
         lot = []
@@ -361,8 +363,9 @@ class heuristics(object):
                 new_distance = math.pow((lot[f][1] - path[0][1]), 2) + math.pow((lot[f][2] - path[0][2]), 2)
                 if distance > new_distance:
                     path[1] = lot[f]
+                    path[2] = lot[f]
                     distance = new_distance
-
+        '''
         # s2
         lot = []
         for c, item2 in enumerate(rack):
@@ -380,7 +383,7 @@ class heuristics(object):
                 if distance > new_distance and path[0] != lot[d]:
                     path[2] = lot[d]
                     distance = new_distance
-
+        '''
         # r1
         lot = []
         for g, item4 in enumerate(rack):
@@ -406,13 +409,19 @@ class heuristics(object):
     def nearest_idx(self, rs, column, floor, input, output, idx):
 
         if idx == 1:
-            return self.nearest_neighbor_s1s2r1r2(rs, column, floor, input, output)
+            a = self.nearest_neighbor_s1s2r1r2(rs, column, floor, input, output)
+            b = self.nearest_neighbor_s1s2r2r1(rs, column, floor, input, output)
+            if a[1] > b[1]:
+                return b
+            else:
+                return a
         elif idx == 2:
-            return self.nearest_neighbor_s1s2r2r1(rs, column, floor, input, output)
-        elif idx == 3:
-            return self.nearest_neighbor_s1r1s2r2(rs, column, floor, input, output)
-        elif idx == 4:
-            return self.nearest_neighbor_s1r2s2r1(rs, column, floor, input, output)
+            a = self.nearest_neighbor_s1r1s2r2(rs, column, floor, input, output)
+            b = self.nearest_neighbor_s1r2s2r1(rs, column, floor, input, output)
+            if a[1] > b[1]:
+                return b
+            else:
+                return a
 
 if __name__ == '__main__':
 
@@ -426,10 +435,4 @@ if __name__ == '__main__':
     print a[0].loc, a[0].type, a[0].oper, a[1]
 
     a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 2)
-    print a[0].loc, a[0].type, a[0].oper, a[1]
-
-    a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 3)
-    print a[0].loc, a[0].type, a[0].oper, a[1]
-
-    a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 4)
     print a[0].loc, a[0].type, a[0].oper, a[1]
