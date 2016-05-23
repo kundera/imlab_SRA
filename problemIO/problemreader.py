@@ -79,5 +79,5 @@ class ProblemWithSolutionReader(ProblemReader):
         return pws
 
 if __name__ == '__main__':
-    test = ProblemReader(20)
-    print len(test.get_problem(1).output)
+    test = ProblemReader(23)
+    print test.get_problem(1).rack.status
