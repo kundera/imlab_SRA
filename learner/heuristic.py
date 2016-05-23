@@ -1,6 +1,7 @@
 from problemIO import problemreader
 import math
 import solution
+import copy
 import time
 
 
@@ -407,17 +408,19 @@ class heuristics(object):
         return sol, cycletime
 
     def nearest_idx(self, rs, column, floor, input, output, idx):
+        rack1 = copy.deepcopy(rs)
+        rack2 = copy.deepcopy(rs)
 
         if idx == 1:
-            a = self.nearest_neighbor_s1s2r1r2(rs, column, floor, input, output)
-            b = self.nearest_neighbor_s1s2r2r1(rs, column, floor, input, output)
+            a = self.nearest_neighbor_s1s2r1r2(rack1, column, floor, input, output)
+            b = self.nearest_neighbor_s1s2r2r1(rack2, column, floor, input, output)
             if a[1] > b[1]:
                 return b
             else:
                 return a
         elif idx == 2:
-            a = self.nearest_neighbor_s1r1s2r2(rs, column, floor, input, output)
-            b = self.nearest_neighbor_s1r2s2r1(rs, column, floor, input, output)
+            a = self.nearest_neighbor_s1r1s2r2(rack1, column, floor, input, output)
+            b = self.nearest_neighbor_s1r2s2r1(rack2, column, floor, input, output)
             if a[1] > b[1]:
                 return b
             else:
