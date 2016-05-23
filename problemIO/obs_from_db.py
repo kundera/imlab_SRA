@@ -25,9 +25,9 @@ class OBSfromDB(object):
         clm = 25
         flr = 20
         sht = 2
-        ACTIONS_COUNT = 2
+        ACTIONS_COUNT = 8
 
-        sql = 'SELECT rs, act, inp, outp, reward, rsprime, terminal FROM dijk_20_2action limit ' + str(no_obs)
+        sql = 'SELECT rs, act, inp, outp, reward, rsprime, terminal FROM dijk_23density limit ' + str(no_obs)
         cur.execute(sql)
         for i in range(cur.rowcount):
             row = cur.fetchone()

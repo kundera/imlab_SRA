@@ -13,7 +13,7 @@ from problemIO import obs_from_db
 import copy
 
 class ASRSplayer(object):
-    ACTIONS_COUNT = 2  # number of valid actions.
+    ACTIONS_COUNT = 8  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
     EXPLORE_STEPS = 20000.  # frames over which to anneal epsilon
     INITIAL_RANDOM_ACTION_PROB = 1.  # starting chance of an action being random
@@ -96,7 +96,7 @@ class ASRSplayer(object):
                 total_action[action_chosen] += 1
 
                 at = action.action()
-                solution, cycletime = at.dijk_2_idx(rack, clm, flr, input, output, action_chosen)
+                solution, cycletime = at.dijk_density(rack, clm, flr, input, output, action_chosen)
 
                 sim = nextstate.simul()
 
@@ -240,6 +240,6 @@ class ASRSplayer(object):
 if __name__ == '__main__':
     obs = obs_from_db.OBSfromDB(23)
     pl = ASRSplayer(obs.get_obs(24000))
-    pr = problemreader.ProblemReader(23).get_problem(9)
+    pr = problemreader.ProblemReader(23).get_problem(1)
     pl._train(pr)
 
