@@ -403,6 +403,17 @@ class heuristics(object):
         cycletime = self.get_cycletime(sol)
         return sol, cycletime
 
+    def nearest_idx(self, rs, column, floor, input, output, idx):
+
+        if idx == 1:
+            return self.nearest_neighbor_s1s2r1r2(rs, column, floor, input, output)
+        elif idx == 2:
+            return self.nearest_neighbor_s1s2r2r1(rs, column, floor, input, output)
+        elif idx == 3:
+            return self.nearest_neighbor_s1r1s2r2(rs, column, floor, input, output)
+        elif idx == 4:
+            return self.nearest_neighbor_s1r2s2r1(rs, column, floor, input, output)
+
 if __name__ == '__main__':
 
     test = problemreader.ProblemReader(23)
@@ -411,14 +422,14 @@ if __name__ == '__main__':
     floor = test.get_problem(1).rack.floor
 
     ts1 = heuristics()
-    a = ts1.nearest_neighbor_s1s2r1r2(rs, column, floor, [123, 456], [28, 29])
+    a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 1)
     print a[0].loc, a[0].type, a[0].oper, a[1]
 
-    a = ts1.nearest_neighbor_s1s2r2r1(rs, column, floor, [123, 456], [28, 29])
+    a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 2)
     print a[0].loc, a[0].type, a[0].oper, a[1]
 
-    a = ts1.nearest_neighbor_s1r1s2r2(rs, column, floor, [123, 456], [28, 29])
+    a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 3)
     print a[0].loc, a[0].type, a[0].oper, a[1]
 
-    a = ts1.nearest_neighbor_s1r2s2r1(rs, column, floor, [123, 456], [28, 29])
+    a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 4)
     print a[0].loc, a[0].type, a[0].oper, a[1]
