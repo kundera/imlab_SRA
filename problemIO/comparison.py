@@ -25,7 +25,7 @@ def dijk(test_data):
 
             at = action.action()
             start = time.time()
-            solution,cycletime = at.dijk_2_idx(rack, clm, flr, input, output, 1)
+            solution,cycletime = at.dijk(rack, clm, flr, input, output)
 
             end = time.time()
             sim = nextstate.simul()
@@ -42,4 +42,4 @@ def dijk(test_data):
 
 if __name__ == '__main__':
     pr2 = problemreader.ProblemReader(23)
-    dijk(pr2.get_problems(1))
+    dijk(pr2.get_problems(10))

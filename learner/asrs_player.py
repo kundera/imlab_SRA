@@ -15,8 +15,8 @@ import copy
 class ASRSplayer(object):
     ACTIONS_COUNT = 2  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
-    EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
-    INITIAL_RANDOM_ACTION_PROB = 0.1  # starting chance of an action being random
+    EXPLORE_STEPS = 20000.  # frames over which to anneal epsilon
+    INITIAL_RANDOM_ACTION_PROB = 1.  # starting chance of an action being random
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
     MINI_BATCH_SIZE = 32  # size of mini batches
     STATE_FRAMES = 10  # number of frames to store in the state
@@ -57,6 +57,9 @@ class ASRSplayer(object):
         sht = training_data.shuttleNum
         clm = training_data.columnNum
         flr = training_data.floorNum
+
+        best_cycletime = 1000000.
+
         while iter < self.ITERATION:
             rack = training_data.rack.status[:]
 
@@ -159,8 +162,10 @@ class ASRSplayer(object):
                         (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
 
                 total_cycletime += cycletime
+            if best_cycletime > total_cycletime:
+                best_cycletime = total_cycletime
             iter += 1
-            print iter, self._probability_of_random_action, total_cycletime, total_action
+            print iter, self._probability_of_random_action, best_cycletime, total_cycletime, total_action
 
 
     def _choose_next_action(self):
@@ -233,8 +238,8 @@ class ASRSplayer(object):
 
 
 if __name__ == '__main__':
-    obs = obs_from_db.OBSfromDB(20)
-    pl = ASRSplayer(obs.get_obs(10000))
-    pr = problemreader.ProblemReader(20).get_problem(1)
+    obs = obs_from_db.OBSfromDB(23)
+    pl = ASRSplayer(obs.get_obs(24000))
+    pr = problemreader.ProblemReader(23).get_problem(9)
     pl._train(pr)
 

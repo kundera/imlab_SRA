@@ -222,6 +222,6 @@ class ObservationGenerator(object):
 
 if __name__ == '__main__':
     a = ObservationGenerator()
-    a.make_data_dijk(20,1)
-    a.make_data_fixed_operation(20,1)
+    a.insert_ob_dijk(23,1)
+    #a.make_data_fixed_operation(20,1)
     #a.make_data_fixed_action(20,1)

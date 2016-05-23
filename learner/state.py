@@ -2,9 +2,9 @@ def get_rack_full_or_empty(rack):
     result = []
     for i in range(len(rack)):
         if rack[i] == -1:
-            result.append(1.0)
-        else:
             result.append(0.0)
+        else:
+            result.append(1.0)
     return result
 
 
