@@ -805,11 +805,152 @@ class action(object):
                 return sol, cycletime
 
 
+    def dijk_srsr_density(self, rs, column, floor, input, output, idx):
+        if idx == 0:
+            if rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[0]) >= rs.count(output[1]):
+                input = [input[0], input[1]]
+                output = [output[0], output[1]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
 
+            elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[0]) >= rs.count(output[1]):
+                input = [input[1], input[0]]
+                output = [output[0], output[1]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
 
+            elif rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[1]) > rs.count(output[0]):
+                input = [input[0], input[1]]
+                output = [output[1], output[0]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
 
+            elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[1]) > rs.count(output[0]):
+                input = [input[1], input[0]]
+                output = [output[1], output[0]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
 
+        elif idx == 1:
+            if rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[0]) >= rs.count(output[1]):
+                input = [input[1], input[0]]
+                output = [output[0], output[1]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
 
+            elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[0]) >= rs.count(output[1]):
+                input = [input[0], input[1]]
+                output = [output[0], output[1]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+            elif rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[1]) > rs.count(output[0]):
+                input = [input[1], input[0]]
+                output = [output[1], output[0]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+            elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[1]) > rs.count(output[0]):
+                input = [input[0], input[1]]
+                output = [output[1], output[0]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+        elif idx == 2:
+            if rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[0]) >= rs.count(output[1]):
+                input = [input[0], input[1]]
+                output = [output[1], output[0]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+            elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[0]) >= rs.count(output[1]):
+                input = [input[1], input[0]]
+                output = [output[1], output[0]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+            elif rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[1]) > rs.count(output[0]):
+                input = [input[0], input[1]]
+                output = [output[0], output[1]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+            elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[1]) > rs.count(output[0]):
+                input = [input[1], input[0]]
+                output = [output[0], output[1]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+        elif idx == 3:
+            if rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[0]) >= rs.count(output[1]):
+                input = [input[1], input[0]]
+                output = [output[1], output[0]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+            elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[0]) >= rs.count(output[1]):
+                input = [input[0], input[1]]
+                output = [output[1], output[0]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+            elif rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[1]) > rs.count(output[0]):
+                input = [input[1], input[0]]
+                output = [output[0], output[1]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+            elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[1]) > rs.count(output[0]):
+                input = [input[0], input[1]]
+                output = [output[0], output[1]]
+                io = input + output
+                a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
 
 
 if __name__ == '__main__':

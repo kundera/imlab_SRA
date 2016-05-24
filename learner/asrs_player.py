@@ -13,21 +13,24 @@ from problemIO import obs_from_db
 import copy
 
 class ASRSplayer(object):
-    ACTIONS_COUNT = 8  # number of valid actions.
+    ACTIONS_COUNT = 4  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
+    OBSERVATION_STEPS = 5000.  # time steps to observe before training
     EXPLORE_STEPS = 20000.  # frames over which to anneal epsilon
     INITIAL_RANDOM_ACTION_PROB = 1.  # starting chance of an action being random
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
+    MEMORY_SIZE = 5900  # number of observations to remember
     MINI_BATCH_SIZE = 32  # size of mini batches
     STATE_FRAMES = 10  # number of frames to store in the state
-    COLUMN, FLOOR = (25,20)
+    COLUMN, FLOOR = (20,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
     LEARN_RATE = 1e-6
     ITERATION = 10000
 
 
-    def __init__(self, _observations):
-
+    def __init__(self):
+        #gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
+        #self._session = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
         self._session = tf.Session()
         self._input_layer, self._output_layer = ASRSplayer._create_network()
 
@@ -46,7 +49,7 @@ class ASRSplayer(object):
         self._probability_of_random_action = self.INITIAL_RANDOM_ACTION_PROB
 
         self._session.run(tf.initialize_all_variables())
-        self._observations = _observations
+        self._observations = deque()
 
 
     def _train(self, problem):
@@ -96,7 +99,7 @@ class ASRSplayer(object):
                 total_action[action_chosen] += 1
 
                 at = action.action()
-                solution, cycletime = at.dijk_density(rack, clm, flr, input, output, action_chosen)
+                solution, cycletime = at.dijk_srsr_density(rack, clm, flr, input, output, action_chosen)
 
                 sim = nextstate.simul()
 
@@ -126,32 +129,35 @@ class ASRSplayer(object):
                 self._observations.append((self._last_state, self._last_action, - cycletime/reward.reward().get_maxtime\
                     (clm, flr, sht), current_state, terminal))
 
-                self._observations.popleft()
+                if len(self._observations) > self.MEMORY_SIZE:
+                    self._observations.popleft()
 
-                # sample a mini_batch to train on
-                mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
-                # get the batch variables
-                previous_states = [d[self.OBS_LAST_STATE_INDEX] for d in mini_batch]
-                actions = [d[self.OBS_ACTION_INDEX] for d in mini_batch]
-                rewards = [d[self.OBS_REWARD_INDEX] for d in mini_batch]
-                current_states = [d[self.OBS_CURRENT_STATE_INDEX] for d in mini_batch]
-                agents_expected_reward = []
-                # this gives us the agents expected reward for each action we might
-                agents_reward_per_action = self._session.run(self._output_layer,
-                                                             feed_dict={self._input_layer: current_states})
-                for i in range(len(mini_batch)):
-                    if mini_batch[i][self.OBS_TERMINAL_INDEX]:
-                        # this was a terminal frame so need so scale future reward...
-                        agents_expected_reward.append(rewards[i])
-                    else:
-                        agents_expected_reward.append(
-                            rewards[i] + self.FUTURE_REWARD_DISCOUNT * np.max(agents_reward_per_action[i]))
+                # only train if done observing
+                if len(self._observations) > self.OBSERVATION_STEPS:
+                    # sample a mini_batch to train on
+                    mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
+                    # get the batch variables
+                    previous_states = [d[self.OBS_LAST_STATE_INDEX] for d in mini_batch]
+                    actions = [d[self.OBS_ACTION_INDEX] for d in mini_batch]
+                    rewards = [d[self.OBS_REWARD_INDEX] for d in mini_batch]
+                    current_states = [d[self.OBS_CURRENT_STATE_INDEX] for d in mini_batch]
+                    agents_expected_reward = []
+                    # this gives us the agents expected reward for each action we might
+                    agents_reward_per_action = self._session.run(self._output_layer,
+                                                                 feed_dict={self._input_layer: current_states})
+                    for i in range(len(mini_batch)):
+                        if mini_batch[i][self.OBS_TERMINAL_INDEX]:
+                            # this was a terminal frame so need so scale future reward...
+                            agents_expected_reward.append(rewards[i])
+                        else:
+                            agents_expected_reward.append(
+                                rewards[i] + self.FUTURE_REWARD_DISCOUNT * np.max(agents_reward_per_action[i]))
 
-                # learn that these actions in these states lead to this reward
-                self._session.run(self._train_operation, feed_dict={
-                    self._input_layer: previous_states,
-                    self._action: actions,
-                    self._target: agents_expected_reward})
+                    # learn that these actions in these states lead to this reward
+                    self._session.run(self._train_operation, feed_dict={
+                        self._input_layer: previous_states,
+                        self._action: actions,
+                        self._target: agents_expected_reward})
 
                 # update the old values
                 self._last_state = current_state
@@ -207,7 +213,7 @@ class ASRSplayer(object):
         convolution_weights_2 = tf.Variable(tf.truncated_normal([3, 3, 32, 64], stddev=0.01))
         convolution_bias_2 = tf.Variable(tf.constant(0.01, shape=[64]))
 
-        feed_forward_weights_1 = tf.Variable(tf.truncated_normal([2240, 256], stddev=0.01))
+        feed_forward_weights_1 = tf.Variable(tf.truncated_normal([1600, 256], stddev=0.01))
         feed_forward_bias_1 = tf.Variable(tf.constant(0.01, shape=[256]))
 
         feed_forward_weights_2 = tf.Variable(tf.truncated_normal([256, ASRSplayer.ACTIONS_COUNT], stddev=0.01))
@@ -227,7 +233,7 @@ class ASRSplayer(object):
             tf.nn.conv2d(hidden_max_pooling_layer, convolution_weights_2,
                          strides=[1, 1, 1, 1], padding="SAME") + convolution_bias_2)
 
-        hidden_convolutional_layer_2_flat = tf.reshape(hidden_convolutional_layer_2, [-1, 2240])
+        hidden_convolutional_layer_2_flat = tf.reshape(hidden_convolutional_layer_2, [-1, 1600])
 
         final_hidden_activations = tf.nn.relu(
             tf.matmul(hidden_convolutional_layer_2_flat, feed_forward_weights_1) + feed_forward_bias_1)
@@ -238,8 +244,7 @@ class ASRSplayer(object):
 
 
 if __name__ == '__main__':
-    obs = obs_from_db.OBSfromDB(23)
-    pl = ASRSplayer(obs.get_obs(24000))
-    pr = problemreader.ProblemReader(23).get_problem(1)
+    pl = ASRSplayer()
+    pr = problemreader.ProblemReader(25).get_problem(1)
     pl._train(pr)
 
