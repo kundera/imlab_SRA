@@ -174,11 +174,11 @@ class ASRSplayer(object):
 
                 total_cycletime += cycletime
 
-            if training:
+            if training and self._probability_of_random_action < self.FINAL_RANDOM_ACTION_PROB:
                 if best_cycletime > total_cycletime:
                     best_cycletime = total_cycletime
                 iter += 1
-                print iter, self._probability_of_random_action, best_cycletime, total_cycletime, total_action
+                print iter, round(self._probability_of_random_action, 2), int(best_cycletime), int(total_cycletime), total_action
 
     def _choose_next_action(self):
         new_action = np.zeros([self.ACTIONS_COUNT])
@@ -251,6 +251,6 @@ class ASRSplayer(object):
 
 if __name__ == '__main__':
     pl = ASRSplayer()
-    pr = problemreader.ProblemReader(25).get_problem(1)
+    pr = problemreader.ProblemReader(25).get_problem(6)
     pl._train(pr)
 
