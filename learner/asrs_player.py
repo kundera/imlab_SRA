@@ -63,6 +63,10 @@ class ASRSplayer(object):
 
         best_cycletime = 1000000.
 
+        print "obs with random action generating..."
+
+        training = False
+
         while iter < self.ITERATION:
             rack = training_data.rack.status[:]
 
@@ -134,6 +138,7 @@ class ASRSplayer(object):
 
                 # only train if done observing
                 if len(self._observations) > self.OBSERVATION_STEPS:
+                    training = True
                     # sample a mini_batch to train on
                     mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
                     # get the batch variables
@@ -168,11 +173,12 @@ class ASRSplayer(object):
                         (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
 
                 total_cycletime += cycletime
-            if best_cycletime > total_cycletime:
-                best_cycletime = total_cycletime
-            iter += 1
-            print iter, self._probability_of_random_action, best_cycletime, total_cycletime, total_action
 
+            if training:
+                if best_cycletime > total_cycletime:
+                    best_cycletime = total_cycletime
+                iter += 1
+                print iter, self._probability_of_random_action, best_cycletime, total_cycletime, total_action
 
     def _choose_next_action(self):
         new_action = np.zeros([self.ACTIONS_COUNT])
