@@ -749,14 +749,14 @@ class heuristics(object):
         rack1 = copy.deepcopy(rs)
         rack2 = copy.deepcopy(rs)
 
-        if idx == 1:
+        if idx == 0:
             a = self.nearest_neighbor_s1s2r1r2(rack1, column, floor, input, output)
             b = self.nearest_neighbor_s1s2r2r1(rack2, column, floor, input, output)
             if a[1] > b[1]:
                 return b
             else:
                 return a
-        elif idx == 2:
+        elif idx == 1:
             a = self.nearest_neighbor_s1r1s2r2(rack1, column, floor, input, output)
             b = self.nearest_neighbor_s1r2s2r1(rack2, column, floor, input, output)
             if a[1] > b[1]:
@@ -768,20 +768,84 @@ class heuristics(object):
         rack1 = copy.deepcopy(rs)
         rack2 = copy.deepcopy(rs)
 
-        if idx == 1:
+        if idx == 0:  # ssrr
             a = self.reverse_nearest_neighbor_s1s2r1r2(rack1, column, floor, input, output)
             b = self.reverse_nearest_neighbor_s1s2r2r1(rack2, column, floor, input, output)
             if a[1] > b[1]:
                 return b
             else:
                 return a
-        elif idx == 2:
+        elif idx == 1:  # srsr
             a = self.reverse_nearest_neighbor_s1r1s2r2(rack1, column, floor, input, output)
             b = self.reverse_nearest_neighbor_s1r2s2r1(rack2, column, floor, input, output)
             if a[1] > b[1]:
                 return b
             else:
                 return a
+
+    def nearest_density_idx(self, rs, column, floor, input, output, idx):
+        rack1 = copy.deepcopy(rs)
+
+        if idx == 0 or idx == 2 or idx == 4 or idx == 6:
+            if rs.count(input[0]) >= rs.count(input[1]):
+                input = [input[0], input[1]]
+            else:
+                input = [input[1], input[0]]
+        elif idx == 1 or idx == 3 or idx == 5 or idx == 7:
+            if rs.count(input[0]) >= rs.count(input[1]):
+                input = [input[1], input[0]]
+            else:
+                input = [input[0], input[1]]
+
+        if idx == 0 or idx == 1 or idx == 4 or idx == 5:
+            if rs.count(output[0]) >= rs.count(output[1]):
+                output = [output[0], output[1]]
+            else:
+                output = [output[1], output[0]]
+        elif idx == 2 or idx == 3 or idx == 6 or idx == 7:
+            if rs.count(output[0]) >= rs.count(output[1]):
+                output = [output[1], output[0]]
+            else:
+                output = [output[0], output[1]]
+
+        if 0 <= idx < 4:
+            a = self.nearest_neighbor_s1s2r1r2(rack1, column, floor, input, output)
+            return a
+        elif 4 <= idx < 8:
+            a = self.nearest_neighbor_s1r1s2r2(rack1, column, floor, input, output)
+            return a
+
+    def reverse_nearest_density_idx(self, rs, column, floor, input, output, idx):
+        rack1 = copy.deepcopy(rs)
+
+        if idx == 0 or idx == 2 or idx == 4 or idx == 6:
+            if rs.count(input[0]) >= rs.count(input[1]):
+                input = [input[0], input[1]]
+            else:
+                input = [input[1], input[0]]
+        elif idx == 1 or idx == 3 or idx == 5 or idx == 7:
+            if rs.count(input[0]) >= rs.count(input[1]):
+                input = [input[1], input[0]]
+            else:
+                input = [input[0], input[1]]
+
+        if idx == 0 or idx == 1 or idx == 4 or idx == 5:
+            if rs.count(output[0]) >= rs.count(output[1]):
+                output = [output[0], output[1]]
+            else:
+                output = [output[1], output[0]]
+        elif idx == 2 or idx == 3 or idx == 6 or idx == 7:
+            if rs.count(output[0]) >= rs.count(output[1]):
+                output = [output[1], output[0]]
+            else:
+                output = [output[0], output[1]]
+
+        if 0 <= idx < 4:  # ssrr
+            a = self.reverse_nearest_neighbor_s1s2r1r2(rack1, column, floor, input, output)
+            return a
+        elif 4 <= idx < 8:  # srsr
+            a = self.reverse_nearest_neighbor_s1r1s2r2(rack1, column, floor, input, output)
+            return a
 
 if __name__ == '__main__':
 
@@ -793,18 +857,9 @@ if __name__ == '__main__':
     ts1 = heuristics()
     # a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 1)
     # print a[0].loc, a[0].type, a[0].oper, a[1]
-
-    a = ts1.reverse_nearest_idx(rs, column, floor, [123, 456], [28, 29], 1)
-    print a[0].loc, a[0].type, a[0].oper, a[1]
-    a = ts1.reverse_nearest_neighbor_s1s2r1r2(rs, column, floor, [123, 456], [28, 29])
-    print a[0].loc, a[0].type, a[0].oper, a[1]
-    a = ts1.reverse_nearest_neighbor_s1s2r2r1(rs, column, floor, [123, 456], [28, 29])
-    print a[0].loc, a[0].type, a[0].oper, a[1]
-
-    a = ts1.reverse_nearest_idx(rs, column, floor, [123, 456], [28, 29], 2)
-    print a[0].loc, a[0].type, a[0].oper, a[1]
-    a = ts1.reverse_nearest_neighbor_s1r1s2r2(rs, column, floor, [123, 456], [28, 29])
-    print a[0].loc, a[0].type, a[0].oper, a[1]
-    a = ts1.reverse_nearest_neighbor_s1r2s2r1(rs, column, floor, [123, 456], [28, 29])
-    print a[0].loc, a[0].type, a[0].oper, a[1]
-
+    for b in range(8):
+        a = ts1.nearest_density_idx(rs, column, floor, [22, 21], [28, 29], b)
+        print a[0].loc, a[0].type, a[0].oper, a[1]
+        a = ts1.reverse_nearest_density_idx(rs, column, floor, [22, 21], [28, 29], b)
+        print a[0].loc, a[0].type, a[0].oper, a[1]
+        print
