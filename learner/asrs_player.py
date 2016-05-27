@@ -25,7 +25,7 @@ class ASRSplayer(object):
     COLUMN, FLOOR = (20,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
     LEARN_RATE = 1e-6
-    ITERATION = 10000
+    ITERATION = 1000000
 
 
     def __init__(self):
@@ -62,6 +62,8 @@ class ASRSplayer(object):
         flr = training_data.floorNum
 
         best_cycletime = 1000000.
+        best_iter = 0
+        last_20 = deque()
 
         print "obs with random action generating..."
 
@@ -175,10 +177,19 @@ class ASRSplayer(object):
                 total_cycletime += cycletime
 
             if training and self._probability_of_random_action < self.FINAL_RANDOM_ACTION_PROB:
+                iter += 1
                 if best_cycletime > total_cycletime:
                     best_cycletime = total_cycletime
-                iter += 1
-                print iter, round(self._probability_of_random_action, 2), int(best_cycletime), int(total_cycletime), total_action
+                    best_iter = iter
+
+                last_20.append(total_cycletime)
+                if len(last_20) > 20:
+                    last_20.popleft()
+                total = 0.
+                for i in list(last_20):
+                    total += i
+
+                print iter, int(total_cycletime), total_action, best_iter, int(best_cycletime), round(total/float(len(last_20)))
 
     def _choose_next_action(self):
         new_action = np.zeros([self.ACTIONS_COUNT])
@@ -251,6 +262,6 @@ class ASRSplayer(object):
 
 if __name__ == '__main__':
     pl = ASRSplayer()
-    pr = problemreader.ProblemReader(25).get_problem(6)
+    pr = problemreader.ProblemReader(25).get_problem(2)
     pl._train(pr)
 
