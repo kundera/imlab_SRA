@@ -129,6 +129,7 @@ class heuristics(object):
 
         sol = solution.solution(path, item, io)
         cycletime = self.get_cycletime(sol)
+        # print path, item, io, cycletime
         return sol, cycletime
 
     def nearest_neighbor_s1s2r2r1(self, rs, column, floor, input, output):
@@ -220,6 +221,7 @@ class heuristics(object):
 
         sol = solution.solution(path, item, io)
         cycletime = self.get_cycletime(sol)
+        # print path, item, io, cycletime
         return sol, cycletime
 
     def nearest_neighbor_s1r1s2r2(self, rs, column, floor, input, output):
@@ -313,6 +315,7 @@ class heuristics(object):
 
         sol = solution.solution(path, item, io)
         cycletime = self.get_cycletime(sol)
+        # print path, item, io, cycletime
         return sol, cycletime
 
     def nearest_neighbor_s1r2s2r1(self, rs, column, floor, input, output):
@@ -405,6 +408,341 @@ class heuristics(object):
 
         sol = solution.solution(path, item, io)
         cycletime = self.get_cycletime(sol)
+        # print path, item, io, cycletime
+        return sol, cycletime
+
+    def reverse_nearest_neighbor_s1s2r1r2(self, rs, column, floor, input, output):
+
+        rack = rs
+        size_h = column
+        size_v = floor
+
+        s1 = input[0]
+        s2 = input[1]
+        r1 = output[0]
+        r2 = output[1]
+        item = [s1, s2, r1, r2]
+        io = ['s1', 's2', 'r1', 'r2']
+
+        path = ['first', 'second', 'third', 'fourth']
+
+        # r2
+        lot = []
+        for a, item1 in enumerate(rack):
+            if item1 == r2:
+                loca1 = self.loca_calculate(a, size_h, size_v)
+                lot.append(loca1)
+
+        if lot == []:
+            print 'no item'
+        else:
+            distance = 10000
+            lot.sort()
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - 0), 2) + math.pow((lot[b][2] - 0), 2)
+                if distance > new_distance:
+                    path[3] = lot[b]
+                    distance = new_distance
+
+        # r1
+        lot = []
+        for c, item2 in enumerate(rack):
+            if item2 == r1:
+                loca2 = self.loca_calculate(c, size_h, size_v)
+                lot.append(loca2)
+
+        if lot == []:
+            print 'no item'
+        else:
+            distance = 10000
+            lot.sort()
+            for d in range(len(lot)):
+                new_distance = math.pow((lot[d][1] - path[3][1]), 2) + math.pow((lot[d][2] - path[3][2]), 2)
+                if distance > new_distance and path[3] != lot[d]:
+                    path[2] = lot[d]
+                    distance = new_distance
+
+        # s2
+        lot = []
+        for e, item3 in enumerate(rack):
+            if item3 == -1:
+                loca3 = self.loca_calculate(e, size_h, size_v)
+                lot.append(loca3)
+
+        if lot == []:
+            print 'no empty space'
+        else:
+            distance = 10000
+            lot.sort()
+            for f in range(len(lot)):
+                new_distance = math.pow((lot[f][1] - path[2][1]), 2) + math.pow((lot[f][2] - path[2][2]), 2)
+                if distance > new_distance:
+                    path[1] = lot[f]
+                    distance = new_distance
+
+        # s1
+        lot = []
+        for g, item4 in enumerate(rack):
+            if item4 == -1:
+                loca4 = self.loca_calculate(g, size_h, size_v)
+                lot.append(loca4)
+
+        if lot == []:
+            print 'no empty space'
+        else:
+            distance = 10000
+            lot.sort()
+            for h in range(len(lot)):
+                new_distance = math.pow((lot[h][1] - path[1][1]), 2) + math.pow((lot[h][2] - path[1][2]), 2)
+                if distance > new_distance and path[1] != lot[h]:
+                    path[0] = lot[h]
+                    distance = new_distance
+
+        sol = solution.solution(path, item, io)
+        cycletime = self.get_cycletime(sol)
+        # print path, item, io, cycletime
+        return sol, cycletime
+
+    def reverse_nearest_neighbor_s1s2r2r1(self, rs, column, floor, input, output):
+
+        rack = rs
+        size_h = column
+        size_v = floor
+
+        s1 = input[0]
+        s2 = input[1]
+        r1 = output[0]
+        r2 = output[1]
+        item = [s1, s2, r1, r2]
+        io = ['s1', 's2', 'r1', 'r2']
+
+        path = ['first', 'second', 'third', 'fourth']
+
+        # r1
+        lot = []
+        for a, item1 in enumerate(rack):
+            if item1 == r1:
+                loca1 = self.loca_calculate(a, size_h, size_v)
+                lot.append(loca1)
+
+        if lot == []:
+            print 'no item'
+        else:
+            distance = 10000
+            lot.sort()
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - 0), 2) + math.pow((lot[b][2] - 0), 2)
+                if distance > new_distance:
+                    path[3] = lot[b]
+                    distance = new_distance
+
+        # r2
+        lot = []
+        for c, item2 in enumerate(rack):
+            if item2 == r2:
+                loca2 = self.loca_calculate(c, size_h, size_v)
+                lot.append(loca2)
+
+        if lot == []:
+            print 'no item'
+        else:
+            distance = 10000
+            lot.sort()
+            for d in range(len(lot)):
+                new_distance = math.pow((lot[d][1] - path[3][1]), 2) + math.pow((lot[d][2] - path[3][2]), 2)
+                if distance > new_distance and path[3] != lot[d]:
+                    path[2] = lot[d]
+                    distance = new_distance
+
+        # s2
+        lot = []
+        for e, item3 in enumerate(rack):
+            if item3 == -1:
+                loca3 = self.loca_calculate(e, size_h, size_v)
+                lot.append(loca3)
+
+        if lot == []:
+            print 'no empty space'
+        else:
+            distance = 10000
+            lot.sort()
+            for f in range(len(lot)):
+                new_distance = math.pow((lot[f][1] - path[2][1]), 2) + math.pow((lot[f][2] - path[2][2]), 2)
+                if distance > new_distance:
+                    path[1] = lot[f]
+                    distance = new_distance
+
+        # s1
+        lot = []
+        for g, item4 in enumerate(rack):
+            if item4 == -1:
+                loca4 = self.loca_calculate(g, size_h, size_v)
+                lot.append(loca4)
+
+        if lot == []:
+            print 'no empty space'
+        else:
+            distance = 10000
+            lot.sort()
+            for h in range(len(lot)):
+                new_distance = math.pow((lot[h][1] - path[1][1]), 2) + math.pow((lot[h][2] - path[1][2]), 2)
+                if distance > new_distance and path[1] != lot[h]:
+                    path[0] = lot[h]
+                    distance = new_distance
+
+        sol = solution.solution(path, item, io)
+        cycletime = self.get_cycletime(sol)
+        # print path, item, io, cycletime
+        return sol, cycletime
+
+    def reverse_nearest_neighbor_s1r1s2r2(self, rs, column, floor, input, output):
+
+        rack = rs
+        size_h = column
+        size_v = floor
+
+        s1 = input[0]
+        s2 = input[1]
+        r1 = output[0]
+        r2 = output[1]
+        item = [s1, s2, r1, r2]
+        io = ['s1', 's2', 'r1', 'r2']
+
+        path = ['first', 'second', 'third', 'fourth']
+
+        # r2
+        lot = []
+        for a, item1 in enumerate(rack):
+            if item1 == r2:
+                loca1 = self.loca_calculate(a, size_h, size_v)
+                lot.append(loca1)
+
+        if lot == []:
+            print 'no item'
+        else:
+            distance = 10000
+            lot.sort()
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - 0), 2) + math.pow((lot[b][2] - 0), 2)
+                if distance > new_distance:
+                    path[3] = lot[b]
+                    distance = new_distance
+
+        # r1
+        lot = []
+        for c, item2 in enumerate(rack):
+            if item2 == r1:
+                loca2 = self.loca_calculate(c, size_h, size_v)
+                lot.append(loca2)
+
+        if lot == []:
+            print 'no item'
+        else:
+            distance = 10000
+            lot.sort()
+            for d in range(len(lot)):
+                new_distance = math.pow((lot[d][1] - path[3][1]), 2) + math.pow((lot[d][2] - path[3][2]), 2)
+                if distance > new_distance and path[3] != lot[d]:
+                    path[2] = lot[d]
+                    distance = new_distance
+                    # s2
+                    path[1] = lot[d]
+        # s1
+        lot = []
+        for g, item4 in enumerate(rack):
+            if item4 == -1:
+                loca4 = self.loca_calculate(g, size_h, size_v)
+                lot.append(loca4)
+
+        if lot == []:
+            print 'no empty space'
+        else:
+            distance = 10000
+            lot.sort()
+            for h in range(len(lot)):
+                new_distance = math.pow((lot[h][1] - path[1][1]), 2) + math.pow((lot[h][2] - path[1][2]), 2)
+                if distance > new_distance and path[1] != lot[h]:
+                    path[0] = lot[h]
+                    distance = new_distance
+
+        sol = solution.solution(path, item, io)
+        cycletime = self.get_cycletime(sol)
+        # print path, item, io, cycletime
+        return sol, cycletime
+
+    def reverse_nearest_neighbor_s1r2s2r1(self, rs, column, floor, input, output):
+
+        rack = rs
+        size_h = column
+        size_v = floor
+
+        s1 = input[0]
+        s2 = input[1]
+        r1 = output[0]
+        r2 = output[1]
+        item = [s1, s2, r1, r2]
+        io = ['s1', 's2', 'r1', 'r2']
+
+        path = ['first', 'second', 'third', 'fourth']
+
+        # r1
+        lot = []
+        for a, item1 in enumerate(rack):
+            if item1 == r1:
+                loca1 = self.loca_calculate(a, size_h, size_v)
+                lot.append(loca1)
+
+        if lot == []:
+            print 'no item'
+        else:
+            distance = 10000
+            lot.sort()
+            for b in range(len(lot)):
+                new_distance = math.pow((lot[b][1] - 0), 2) + math.pow((lot[b][2] - 0), 2)
+                if distance > new_distance:
+                    path[3] = lot[b]
+                    distance = new_distance
+
+        # r2
+        lot = []
+        for c, item2 in enumerate(rack):
+            if item2 == r2:
+                loca2 = self.loca_calculate(c, size_h, size_v)
+                lot.append(loca2)
+
+        if lot == []:
+            print 'no item'
+        else:
+            distance = 10000
+            lot.sort()
+            for d in range(len(lot)):
+                new_distance = math.pow((lot[d][1] - path[3][1]), 2) + math.pow((lot[d][2] - path[3][2]), 2)
+                if distance > new_distance and path[3] != lot[d]:
+                    path[2] = lot[d]
+                    distance = new_distance
+                    # s2
+                    path[1] = lot[d]
+        # s1
+        lot = []
+        for g, item4 in enumerate(rack):
+            if item4 == -1:
+                loca4 = self.loca_calculate(g, size_h, size_v)
+                lot.append(loca4)
+
+        if lot == []:
+            print 'no empty space'
+        else:
+            distance = 10000
+            lot.sort()
+            for h in range(len(lot)):
+                new_distance = math.pow((lot[h][1] - path[1][1]), 2) + math.pow((lot[h][2] - path[1][2]), 2)
+                if distance > new_distance and path[1] != lot[h]:
+                    path[0] = lot[h]
+                    distance = new_distance
+
+        sol = solution.solution(path, item, io)
+        cycletime = self.get_cycletime(sol)
+        # print path, item, io, cycletime
         return sol, cycletime
 
     def nearest_idx(self, rs, column, floor, input, output, idx):
@@ -426,6 +764,25 @@ class heuristics(object):
             else:
                 return a
 
+    def reverse_nearest_idx(self, rs, column, floor, input, output, idx):
+        rack1 = copy.deepcopy(rs)
+        rack2 = copy.deepcopy(rs)
+
+        if idx == 1:
+            a = self.reverse_nearest_neighbor_s1s2r1r2(rack1, column, floor, input, output)
+            b = self.reverse_nearest_neighbor_s1s2r2r1(rack2, column, floor, input, output)
+            if a[1] > b[1]:
+                return b
+            else:
+                return a
+        elif idx == 2:
+            a = self.reverse_nearest_neighbor_s1r1s2r2(rack1, column, floor, input, output)
+            b = self.reverse_nearest_neighbor_s1r2s2r1(rack2, column, floor, input, output)
+            if a[1] > b[1]:
+                return b
+            else:
+                return a
+
 if __name__ == '__main__':
 
     test = problemreader.ProblemReader(23)
@@ -434,8 +791,20 @@ if __name__ == '__main__':
     floor = test.get_problem(1).rack.floor
 
     ts1 = heuristics()
-    a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 1)
+    # a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 1)
+    # print a[0].loc, a[0].type, a[0].oper, a[1]
+
+    a = ts1.reverse_nearest_idx(rs, column, floor, [123, 456], [28, 29], 1)
+    print a[0].loc, a[0].type, a[0].oper, a[1]
+    a = ts1.reverse_nearest_neighbor_s1s2r1r2(rs, column, floor, [123, 456], [28, 29])
+    print a[0].loc, a[0].type, a[0].oper, a[1]
+    a = ts1.reverse_nearest_neighbor_s1s2r2r1(rs, column, floor, [123, 456], [28, 29])
     print a[0].loc, a[0].type, a[0].oper, a[1]
 
-    a = ts1.nearest_idx(rs, column, floor, [123, 456], [28, 29], 2)
+    a = ts1.reverse_nearest_idx(rs, column, floor, [123, 456], [28, 29], 2)
     print a[0].loc, a[0].type, a[0].oper, a[1]
+    a = ts1.reverse_nearest_neighbor_s1r1s2r2(rs, column, floor, [123, 456], [28, 29])
+    print a[0].loc, a[0].type, a[0].oper, a[1]
+    a = ts1.reverse_nearest_neighbor_s1r2s2r1(rs, column, floor, [123, 456], [28, 29])
+    print a[0].loc, a[0].type, a[0].oper, a[1]
+
