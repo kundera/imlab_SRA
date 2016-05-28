@@ -89,6 +89,7 @@ class ASRSplayer(object):
                 foe = np.append(foe, self.change_to_two_dimension(son_out[i], clm, flr), axis=2)
             self._last_state = foe[:, :, :]
 
+
             cycleNum = training_data.requestLength / sht
 
             for order_idx in range(cycleNum):
