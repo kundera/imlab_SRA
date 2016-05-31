@@ -1,13 +1,23 @@
 def get_rack_full_or_empty(rack):
     result = []
-    for i in range(len(rack)):
-        if rack[i] == -1:
-            result.append(0.0)
-        else:
+    for i in range(len(rack)/2):
+        if rack[i] == -1 or rack[i+len(rack)/2] == -1:
             result.append(1.0)
+        else:
+            result.append(0.0)
     return result
 
 
+def get_rack_same_or_not(rack, item):
+    result = []
+    for i in range(len(rack)/2):
+        if rack[i] == item or rack[i+len(rack)/2] == item:
+            result.append(1.0)
+        else:
+            result.append(0.0)
+    return result
+
+"""""""""
 def get_rack_same_or_not(rack, order):
     results = []
     for i in range(len(order)):
@@ -19,7 +29,7 @@ def get_rack_same_or_not(rack, order):
                 result.append(0.0)
         results.append(result)
     return results
-
+"""""""""
 
 def get_storage_binary(rack):
     result = []

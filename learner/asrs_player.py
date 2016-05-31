@@ -11,6 +11,7 @@ import state
 import actiongenerator
 from problemIO import obs_from_db
 import copy
+import heuristic
 
 class ASRSplayer(object):
     ACTIONS_COUNT = 4  # number of valid actions.
@@ -21,7 +22,7 @@ class ASRSplayer(object):
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
     MEMORY_SIZE = 5900  # number of observations to remember
     MINI_BATCH_SIZE = 32  # size of mini batches
-    STATE_FRAMES = 10  # number of frames to store in the state
+    STATE_FRAMES = 3  # number of frames to store in the state
     COLUMN, FLOOR = (20,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
     LEARN_RATE = 1e-6
@@ -78,17 +79,17 @@ class ASRSplayer(object):
             input = training_data.input[0:0 + sht]
             output = training_data.output[0:0 + sht]
 
+            input = self.sort_by_count(input, rack)
+            output = self.sort_by_count(output, rack)
+
             foe = state.get_rack_full_or_empty(rack)
             foe = self.change_to_two_dimension(foe, clm, flr)
-            son_in = state.get_rack_same_or_not(rack, input)
-            son_out = state.get_rack_same_or_not(rack, output)
 
-            for i in range(len(son_in)):
-                foe = np.append(foe, self.change_to_two_dimension(son_in[i], clm, flr), axis=2)
-            for i in range(len(son_out)):
-                foe = np.append(foe, self.change_to_two_dimension(son_out[i], clm, flr), axis=2)
+            #for i in input:
+                #foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr), axis=2)
+            for j in output:
+                foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr), axis=2)
             self._last_state = foe[:, :, :]
-
 
             cycleNum = training_data.requestLength / sht
 
@@ -112,18 +113,18 @@ class ASRSplayer(object):
 
                 rack = sim.change_rs(rack, clm, flr, solution)
 
-                input = training_data.input[order_idx * sht:order_idx * sht + sht]
-                output = training_data.output[order_idx * sht:order_idx * sht + sht]
+                input = self.sort_by_count(input, rack)
+                output = self.sort_by_count(output, rack)
 
                 foe = state.get_rack_full_or_empty(rack)
                 foe = self.change_to_two_dimension(foe, clm, flr)
-                son_in = state.get_rack_same_or_not(rack, input)
-                son_out = state.get_rack_same_or_not(rack, output)
 
-                for i in range(len(son_in)):
-                    foe = np.append(foe, self.change_to_two_dimension(son_in[i], clm, flr), axis=2)
-                for i in range(len(son_out)):
-                    foe = np.append(foe, self.change_to_two_dimension(son_out[i], clm, flr), axis=2)
+                #for i in input:
+                    #foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr),
+                                    #axis=2)
+                for j in output:
+                    foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr),
+                                    axis=2)
 
                 current_state = foe[:, :, :]
 
@@ -208,6 +209,13 @@ class ASRSplayer(object):
 
 
     def change_to_two_dimension(self, rack_status, columnNum, floorNum):
+        result = [[0.0 for flr in range(floorNum)] for clm in range(columnNum)]
+        for clm in range(columnNum):
+            for flr in range(floorNum):
+                result[clm][flr] = rack_status[clm * floorNum + flr]
+        return np.reshape(np.array(result), (columnNum, floorNum, 1))
+
+        """""""""
         leftrack = [[0.0 for flr in range(floorNum)] for clm in range(columnNum)]
         for clm in range(columnNum):
             for flr in range(floorNum):
@@ -219,6 +227,14 @@ class ASRSplayer(object):
 
         result = np.append(np.reshape(np.array(leftrack), (columnNum, floorNum, 1)), np.reshape(np.array(rightrack), (columnNum, floorNum, 1)), axis=2)
         return result
+        """""""""
+
+    def sort_by_count(self, order, rack):
+        result = []
+        for i in order:
+            result.append([i, rack.count(i)])
+        result.sort(key=lambda tup: tup[1], reverse=True)
+        return [i for [i,j] in result]
 
 
     @staticmethod
@@ -265,4 +281,5 @@ if __name__ == '__main__':
     pl = ASRSplayer()
     pr = problemreader.ProblemReader(25).get_problem(2)
     pl._train(pr)
+
 
