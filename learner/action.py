@@ -2,6 +2,8 @@ from problemIO import problemreader
 import networkx as nx
 import math
 import solution
+
+from collections import Counter
 import matplotlib.pyplot as plt
 
 
@@ -126,7 +128,7 @@ class action(object):
         for n, nbrs in G.adjacency_iter():
             for nbr, eattr in nbrs.items():
                 data = eattr['weight']
-                if int(data) == 0:
+                if float(data) == 0:
                     G.remove_edge('%s' % n, '%s' % nbr)
 
         #print G.node
@@ -249,7 +251,7 @@ class action(object):
                 # create s2
                 for c, item3 in enumerate(rack):
                     loca3 = self.loca_calculate(c, size_h, size_v)
-                    if loca3[0] != loca2[0] and item3 == -1 and loca3[0:2] == loca2[0:2]:
+                    if loca3[0] != loca2[0] and item3 == -1 and loca3[1:3] == loca2[1:3]:
                         G.add_node('%s_s2' % loca3, loca=loca3, phase=3)
                         G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
                     elif loca3 == loca2:
@@ -329,7 +331,7 @@ class action(object):
                 # create s2
                 for c, item3 in enumerate(rack):
                     loca3 = self.loca_calculate(c, size_h, size_v)
-                    if loca3[0] != loca2[0] and item3 == -1 and loca3[0:2] == loca2[0:2]:
+                    if loca3[0] != loca2[0] and item3 == -1 and loca3[1:3] == loca2[1:3]:
                         G.add_node('%s_s2' % loca3, loca=loca3, phase=3)
                         G.add_edge('%s_r2' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
                     elif loca3 == loca2:
@@ -953,16 +955,30 @@ class action(object):
                 return sol, cycletime
 
 
+
+
+
 if __name__ == '__main__':
-    test = problemreader.ProblemReader(23)
+    test = problemreader.ProblemReader(26)
     rs = test.get_problem(1).rack.status
     column = test.get_problem(1).rack.column
     floor = test.get_problem(1).rack.floor
+    input = test.get_problem(1).input
+    output = test.get_problem(1).output
 
     ts = action()
-    print rs
-    a,b = ts.dijk(rs,column,floor,[36,16],[36,16])
+    sm = nextstate.simul()
+    cycletime = 0
 
-    print a
+    for i in range(len(input)):
+        inputs = input[(i+1)*2-2:(i+1)*2]
+        outputs = output[(i + 1) * 2 - 2:(i + 1) * 2]
+        a,b = ts.dijk(rs,column,floor,inputs,outputs)
+        cycletime += b
+        sm.change_rs(rs,column,floor,a)
 
+    print cycletime
+
+
+    #ts.abc_action_SSRR(rs,column,floor,input,output)
 
