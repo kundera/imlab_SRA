@@ -279,7 +279,7 @@ class ASRSplayer(object):
 
 if __name__ == '__main__':
     pl = ASRSplayer()
-    pr = problemreader.ProblemReader(25).get_problem(2)
+    pr = problemreader.ProblemReader(25).get_problem(3)
     pl._train(pr)
 
 

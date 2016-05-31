@@ -128,7 +128,7 @@ class ObservationGenerator(object):
                 outputs = output[(k * 2 - 2):k * 2]
                 i = random.randrange(1, 12)
                 sol, cycletime = ac.dijk(rs1, column, floor, inputs, outputs)
-                new_sol = acg.generating_idx(rs1,column,floor,sol,i,fixed_oper)
+                new_sol = acg.generating_idx(rs1, column, floor, sol, i, fixed_oper)
                 cycletime = rw.get_cycletime(new_sol)
 
                 #rs2 = simul.change_rs(rs1, column, floor, new_sol)
@@ -215,7 +215,7 @@ class ObservationGenerator(object):
                     rs1 = simul.change_rs(rs1, column, floor, new_sol)
 
     def make_data_fixed_action(self, tidx, pidx):
-         for i in range(1,12):
+         for i in range(1, 12):
             self.make_table_fixed_action(i)
             self.insert_ob_fixed_action(tidx,pidx,i)
 

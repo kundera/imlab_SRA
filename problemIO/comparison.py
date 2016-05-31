@@ -30,7 +30,6 @@ def dijk(test_data):
             end = time.time()
             sim = nextstate.simul()
 
-
             rack = sim.change_rs(rack, clm, flr, solution)
 
             elapsed = end - start

@@ -331,7 +331,7 @@ class heuristics(object):
         r1 = output[0]
         r2 = output[1]
         item = [s1, s2, r1, r2]
-        io = ['S', 'S', 'R', 'R']
+        io = ['S', 'R', 'S', 'R']
 
         path = ['first', 'second', 'third', 'fourth']
 

@@ -2,6 +2,7 @@ from problemIO import problemreader
 import action, solution
 import math
 import random
+import time
 
 class ActionGenerator(object):
 
@@ -616,26 +617,33 @@ class ActionGenerator(object):
 
 if __name__ == '__main__':
 
+    start = time.time()
     test = problemreader.ProblemReader(20)
     rs = test.get_problem(1).rack.status
     column = test.get_problem(1).rack.column
     floor = test.get_problem(1).rack.floor
-
+    end = time.time()
+    print end - start
     make = ActionGenerator()
 
     # for a in range(floor):
     #    print (floor - a - 1), make.change_to_two_dimension1(rs, column, floor)[floor - a - 1], '    ', \
     #        make.change_to_two_dimension2(rs, column, floor)[floor - 1 - a]
-
+    start = time.time()
     ts = action.action()
     sol = ts.dijk(rs, column, floor, [18, 24], [23, 25])[0]
+    end = time.time()
+    print end - start
+
     temp = solution.solution(sol.loc, sol.type, sol.oper)
 
     print column, floor, sol.type, sol.oper
     print sol.loc
     print
-
-    print make.generating_idx(rs, column, floor, sol, 1, 1)
+    start = time.time()
+    print make.generating_idx(rs, column, floor, sol, 1, 1).loc
+    end = time.time()
+    print end - start
 
     # result = make.full_random_action(rs, column, floor, sol)
     # result = make.action_fixed_action(rs, column, floor, sol, 11)
