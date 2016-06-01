@@ -106,8 +106,8 @@ class ASRSplayer(object):
 
                 total_action[action_chosen] += 1
 
-                at = action.action()
-                solution, cycletime = at.dijk_srsr_density(rack, clm, flr, input, output, action_chosen)
+                at = heuristic.heuristics()
+                solution, cycletime = at.shortest_path_density_idx(rack, clm, flr, input, output, action_chosen)
 
                 sim = nextstate.simul()
 
@@ -279,7 +279,7 @@ class ASRSplayer(object):
 
 if __name__ == '__main__':
     pl = ASRSplayer()
-    pr = problemreader.ProblemReader(25).get_problem(3)
+    pr = problemreader.ProblemReader(25).get_problem(1)
     pl._train(pr)
 
 
