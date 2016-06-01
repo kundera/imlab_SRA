@@ -22,7 +22,7 @@ class ASRSplayer(object):
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
     MEMORY_SIZE = 5900  # number of observations to remember
     MINI_BATCH_SIZE = 32  # size of mini batches
-    STATE_FRAMES = 3  # number of frames to store in the state
+    STATE_FRAMES = 5  # number of frames to store in the state
     COLUMN, FLOOR = (20,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
     LEARN_RATE = 1e-6
@@ -85,8 +85,8 @@ class ASRSplayer(object):
             foe = state.get_rack_full_or_empty(rack)
             foe = self.change_to_two_dimension(foe, clm, flr)
 
-            #for i in input:
-                #foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr), axis=2)
+            for i in input:
+                foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr), axis=2)
             for j in output:
                 foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr), axis=2)
             self._last_state = foe[:, :, :]
@@ -119,9 +119,9 @@ class ASRSplayer(object):
                 foe = state.get_rack_full_or_empty(rack)
                 foe = self.change_to_two_dimension(foe, clm, flr)
 
-                #for i in input:
-                    #foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr),
-                                    #axis=2)
+                for i in input:
+                    foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr),
+                                    axis=2)
                 for j in output:
                     foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr),
                                     axis=2)
