@@ -62,9 +62,9 @@ class ASRSplayer(object):
 
         print "obs with random action generating..."
 
-        training = False
-
         p_idx = 0
+
+        iter_validation = 0
 
         while iter < self.ITERATION:
             training_data = copy.deepcopy(training_set[p_idx])
@@ -144,7 +144,6 @@ class ASRSplayer(object):
 
                 # only train if done observing
                 if len(self._observations) > self.OBSERVATION_STEPS:
-                    training = True
                     # sample a mini_batch to train on
                     mini_batch = random.sample(self._observations, self.MINI_BATCH_SIZE)
                     # get the batch variables
@@ -180,12 +179,14 @@ class ASRSplayer(object):
 
                 total_cycletime += cycletime
 
-            if training:
-                #print round(self._probability_of_random_action, 2), p_idx + 1, int(total_cycletime), total_action
-                p_idx += 1
-                if p_idx == len(training_set):
-                    p_idx = 0
-                    print 'validation begins with random action probability: %s' % (self._probability_of_random_action)
+            p_idx += 1
+            if p_idx == len(training_set):
+                p_idx = 0
+                if self._probability_of_random_action > self.FINAL_RANDOM_ACTION_PROB:
+                    print 'training with random action probability:', self._probability_of_random_action
+                else:
+                    iter_validation += 1
+                    print 'validation', iter_validation
                     for i in range(len(validation_set)):
                         self.validation_without_update(validation_set[i], i)
 

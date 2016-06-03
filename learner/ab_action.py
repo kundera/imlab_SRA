@@ -9,8 +9,8 @@ from simulator import nextstate
 
 class AB_Action(object):
 
-    yspeed = 2.5
-    zspeed = 0.6666667
+    yspeed = 2.
+    zspeed = 1.
 
     def __init__(self, ini_rs):
         self.ini_rs = Counter(ini_rs)
