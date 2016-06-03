@@ -169,11 +169,12 @@ class ASRSplayer(object):
                         self._action: actions,
                         self._target: agents_expected_reward})
 
+
                 # update the old values
                 self._last_state = current_state
 
                 # gradually reduce the probability of a random actionself.
-                if self._probability_of_random_action > self.FINAL_RANDOM_ACTION_PROB:
+                if self._probability_of_random_action > self.FINAL_RANDOM_ACTION_PROB and len(self._observations) > self.OBSERVATION_STEPS:
                     self._probability_of_random_action -= \
                         (self.INITIAL_RANDOM_ACTION_PROB - self.FINAL_RANDOM_ACTION_PROB) / self.EXPLORE_STEPS
 
