@@ -25,7 +25,7 @@ class ASRSplayer(object):
     STATE_FRAMES = 5  # number of frames to store in the state
     COLUMN, FLOOR = (20,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
-    LEARN_RATE = 1e-6
+    LEARN_RATE = 1e-3
     ITERATION = 1000000
 
 
@@ -53,14 +53,8 @@ class ASRSplayer(object):
         self._observations = deque()
 
 
-    def _train(self, problem):
+    def _train(self, training_set, validation_set):
         iter = 0
-
-        training_data = copy.deepcopy(problem)
-
-        sht = training_data.shuttleNum
-        clm = training_data.columnNum
-        flr = training_data.floorNum
 
         best_cycletime = 1000000.
         best_iter = 0
@@ -70,7 +64,15 @@ class ASRSplayer(object):
 
         training = False
 
+        p_idx = 0
+
         while iter < self.ITERATION:
+            training_data = copy.deepcopy(training_set[p_idx])
+
+            sht = training_data.shuttleNum
+            clm = training_data.columnNum
+            flr = training_data.floorNum
+
             rack = training_data.rack.status[:]
 
             total_cycletime = 0.0
@@ -178,20 +180,84 @@ class ASRSplayer(object):
 
                 total_cycletime += cycletime
 
-            if training and self._probability_of_random_action < self.FINAL_RANDOM_ACTION_PROB:
-                iter += 1
-                if best_cycletime > total_cycletime:
-                    best_cycletime = total_cycletime
-                    best_iter = iter
+            if training:
+                #print round(self._probability_of_random_action, 2), p_idx + 1, int(total_cycletime), total_action
+                p_idx += 1
+                if p_idx == len(training_set):
+                    p_idx = 0
+                    print 'validation begins with random action probability: %s' % (self._probability_of_random_action)
+                    for i in range(len(validation_set)):
+                        self.validation_without_update(validation_set[i], i)
 
-                last_20.append(total_cycletime)
-                if len(last_20) > 20:
-                    last_20.popleft()
-                total = 0.
-                for i in list(last_20):
-                    total += i
 
-                print iter, int(total_cycletime), total_action, best_iter, int(best_cycletime), round(total/float(len(last_20)))
+    def validation_without_update(self, validation_data, p_idx):
+        training_data = copy.deepcopy(validation_data)
+
+        sht = training_data.shuttleNum
+        clm = training_data.columnNum
+        flr = training_data.floorNum
+
+        rack = training_data.rack.status[:]
+
+        total_cycletime = 0.0
+        total_action = [0 for _ in range(self.ACTIONS_COUNT)]
+
+        input = training_data.input[0:0 + sht]
+        output = training_data.output[0:0 + sht]
+
+        input = self.sort_by_count(input, rack)
+        output = self.sort_by_count(output, rack)
+
+        foe = state.get_rack_full_or_empty(rack)
+        foe = self.change_to_two_dimension(foe, clm, flr)
+
+        for i in input:
+            foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr), axis=2)
+        for j in output:
+            foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr), axis=2)
+        last_state = foe[:, :, :]
+
+        cycleNum = training_data.requestLength / sht
+
+        for order_idx in range(cycleNum):
+            input = training_data.input[order_idx * sht:order_idx * sht + sht]
+            output = training_data.output[order_idx * sht:order_idx * sht + sht]
+
+            # choose an action given our last state
+            readout_t = self._session.run(self._output_layer, feed_dict={self._input_layer: [last_state]})[0]
+            action_chosen = np.argmax(readout_t)
+
+            total_action[action_chosen] += 1
+
+            at = action.action()
+            solution, cycletime = at.dijk_srsr_density(rack, clm, flr, input, output, action_chosen)
+
+            sim = nextstate.simul()
+
+            rack = sim.change_rs(rack, clm, flr, solution)
+
+            input = self.sort_by_count(input, rack)
+            output = self.sort_by_count(output, rack)
+
+            foe = state.get_rack_full_or_empty(rack)
+            foe = self.change_to_two_dimension(foe, clm, flr)
+
+            for i in input:
+                foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr),
+                                axis=2)
+            for j in output:
+                foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr),
+                                axis=2)
+
+            current_state = foe[:, :, :]
+
+            # update the old values
+            last_state = current_state
+
+            total_cycletime += cycletime
+
+        print 'p_idx: %s cycletime: %s action: %s' % (p_idx + 1, int(total_cycletime), total_action)
+
 
     def _choose_next_action(self):
         new_action = np.zeros([self.ACTIONS_COUNT])
@@ -279,7 +345,8 @@ class ASRSplayer(object):
 
 if __name__ == '__main__':
     pl = ASRSplayer()
-    pr = problemreader.ProblemReader(25).get_problem(3)
-    pl._train(pr)
+    tr = problemreader.ProblemReader(25).get_problems(100)
+    va = problemreader.ProblemReader(27).get_problems(10)
+    pl._train(tr, va)
 
 

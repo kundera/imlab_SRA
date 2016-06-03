@@ -9,8 +9,8 @@ from simulator import nextstate
 
 class ABC_Action(object):
 
-    yspeed = 2.5
-    zspeed = 0.6666667
+    yspeed = 2.
+    zspeed = 1.
 
     def loca_calculate(self, index, size_h, size_v):
 

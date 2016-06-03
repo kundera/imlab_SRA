@@ -1,8 +1,8 @@
 import solution
 
 class reward(object):
-    ySpeed = 2.5
-    zSpeed = 0.6666667
+    ySpeed = 2.
+    zSpeed = 1.
 
     def get_maxtime(self, columnNum, floorNum, shuttleNum):
         return (shuttleNum * 2 + 1) * self.get_time([0,0,0], [0, columnNum-1, floorNum-1])

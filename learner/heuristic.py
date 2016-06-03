@@ -8,8 +8,8 @@ import random
 
 
 class heuristics(object):
-    ySpeed = 2.5
-    zSpeed = 0.6666667
+    ySpeed = 2.
+    zSpeed = 1.
 
     def loca_calculate(self, index, size_h, size_v):
 
