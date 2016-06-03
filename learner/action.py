@@ -278,6 +278,7 @@ class action(object):
                 G.add_node('%s_r2' % loca4, loca=loca4, phase=4)
                 G.add_edge('%s_r2' % loca4, 'end', weight=self.get_time(loca4, end_loca))
 
+
         for a, d in G.nodes_iter(data=True):
             data1 = d['loca']
             data2 = d['phase']
@@ -293,7 +294,7 @@ class action(object):
             for b, e in G.nodes_iter(data=True):
                 data3 = e['loca']
                 data4 = e['phase']
-                if data2 == 3 and data4 == 4:
+                if data2 == 3 and data4 == 4 and data1 != data3:
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
 
         path = nx.dijkstra_path(G,'start','end')
@@ -373,7 +374,7 @@ class action(object):
             for b, e in G.nodes_iter(data=True):
                 data3 = e['loca']
                 data4 = e['phase']
-                if data2 == 3 and data4 == 4:
+                if data2 == 3 and data4 == 4 and data1 != data3 :
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
 
         path = nx.dijkstra_path(G,'start','end')
