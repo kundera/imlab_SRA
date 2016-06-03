@@ -490,10 +490,10 @@ class heuristics(object):
 
         if 0 <= idx < 4:
             a = self.nearest_neighbor_s1s2r1r2(rack1, column, floor, input, output)
-            return a
+            return a[0], a[1]
         elif 4 <= idx < 8:
             a = self.nearest_neighbor_s1r1s2r2(rack1, column, floor, input, output)
-            return a
+            return a[0], a[1]
 
     def reverse_nearest_density_idx(self, rs, column, floor, input, output, idx):
         rack1 = copy.deepcopy(rs)
@@ -522,10 +522,10 @@ class heuristics(object):
 
         if 0 <= idx < 4:  # ssrr
             a = self.reverse_nearest_neighbor_s1s2r1r2(rack1, column, floor, input, output)
-            return a
+            return a[0], a[1]
         elif 4 <= idx < 8:  # srsr
             a = self.reverse_nearest_neighbor_s1r1s2r2(rack1, column, floor, input, output)
-            return a
+            return a[0], a[1]
 
     def shortest_path_density_idx(self, rs, column, floor, input, output, idx):
         rack1 = copy.deepcopy(rs)
@@ -558,7 +558,7 @@ class heuristics(object):
                 output = [output[0], output[1]]
 
         a = self.shortest_path(rack1, column, floor, input, output)
-        return a
+        return a[0], a[1]
 
 if __name__ == '__main__':
 
@@ -573,9 +573,10 @@ if __name__ == '__main__':
     simul = nextstate.simul()
 
     a = ts1.shortest_path(rs, column, floor, [0, 6], [23, 21])
-    # print a[0].loc, a[0].type, a[0].oper, a[1]
-    # print rs
-    # print
+    print a[0].loc, a[0].type, a[0].oper, a[1]
+    print rs
+    print
+
     for time in range(5):
         cum_cycletime = 0
         rs1 = copy.deepcopy(rs)

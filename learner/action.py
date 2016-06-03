@@ -251,9 +251,10 @@ class action(object):
                 # create s2
                 for c, item3 in enumerate(rack):
                     loca3 = self.loca_calculate(c, size_h, size_v)
-                    if loca3[0] != loca2[0] and item3 == -1 and loca3[1:3] == loca2[1:3]:
+                    if loca3[0] != loca2[0] and item3 == -1 and loca3[1:3] == loca2[1:3] :
                         G.add_node('%s_s2' % loca3, loca=loca3, phase=3)
                         G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
+
                     elif loca3 == loca2:
                         G.add_node('%s_s2' % loca3, loca=loca3, phase=3)
                         G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
@@ -278,6 +279,7 @@ class action(object):
                 G.add_node('%s_r2' % loca4, loca=loca4, phase=4)
                 G.add_edge('%s_r2' % loca4, 'end', weight=self.get_time(loca4, end_loca))
 
+
         for a, d in G.nodes_iter(data=True):
             data1 = d['loca']
             data2 = d['phase']
@@ -293,8 +295,30 @@ class action(object):
             for b, e in G.nodes_iter(data=True):
                 data3 = e['loca']
                 data4 = e['phase']
-                if data2 == 3 and data4 == 4:
+                if data2 == 3 and data4 == 4 and data1 != data3:
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
+
+        for a, d in G.nodes_iter(data=True):
+            data1 = d['loca']
+            data2 = d['phase']
+            for b, e in G.nodes_iter(data=True):
+                data3 = e['loca']
+                data4 = e['phase']
+                if data2 == 1 and data4 == 3 and data1 == data3 :
+                    if data1[0] == 0:
+                        data1[0] = 1
+                        if G.has_edge('%s_r1' % data1, '%s_s2' % data3) == True :
+                            G.remove_edge('%s_r1' % data1, '%s_s2' % data3)
+                    elif data1[0] == 1:
+                        data1[0] = 0
+                        if G.has_edge('%s_r1' % data1, '%s_s2' % data3) == True :
+                            G.remove_edge('%s_r1' % data1, '%s_s2' % data3)
+
+
+
+
+
+
 
         path = nx.dijkstra_path(G,'start','end')
         length = nx.dijkstra_path_length(G, 'start', 'end')
@@ -373,7 +397,7 @@ class action(object):
             for b, e in G.nodes_iter(data=True):
                 data3 = e['loca']
                 data4 = e['phase']
-                if data2 == 3 and data4 == 4:
+                if data2 == 3 and data4 == 4 and data1 != data3 :
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
 
         path = nx.dijkstra_path(G,'start','end')
@@ -812,7 +836,7 @@ class action(object):
             if rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[0]) >= rs.count(output[1]):
                 input = [input[0], input[1]]
                 output = [output[0], output[1]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -821,7 +845,7 @@ class action(object):
             elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[0]) >= rs.count(output[1]):
                 input = [input[1], input[0]]
                 output = [output[0], output[1]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -830,7 +854,7 @@ class action(object):
             elif rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[1]) > rs.count(output[0]):
                 input = [input[0], input[1]]
                 output = [output[1], output[0]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -839,7 +863,7 @@ class action(object):
             elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[1]) > rs.count(output[0]):
                 input = [input[1], input[0]]
                 output = [output[1], output[0]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -849,7 +873,7 @@ class action(object):
             if rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[0]) >= rs.count(output[1]):
                 input = [input[1], input[0]]
                 output = [output[0], output[1]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -858,7 +882,7 @@ class action(object):
             elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[0]) >= rs.count(output[1]):
                 input = [input[0], input[1]]
                 output = [output[0], output[1]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -867,7 +891,7 @@ class action(object):
             elif rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[1]) > rs.count(output[0]):
                 input = [input[1], input[0]]
                 output = [output[1], output[0]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -876,7 +900,7 @@ class action(object):
             elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[1]) > rs.count(output[0]):
                 input = [input[0], input[1]]
                 output = [output[1], output[0]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -885,7 +909,7 @@ class action(object):
             if rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[0]) >= rs.count(output[1]):
                 input = [input[0], input[1]]
                 output = [output[1], output[0]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -894,7 +918,7 @@ class action(object):
             elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[0]) >= rs.count(output[1]):
                 input = [input[1], input[0]]
                 output = [output[1], output[0]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -903,7 +927,7 @@ class action(object):
             elif rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[1]) > rs.count(output[0]):
                 input = [input[0], input[1]]
                 output = [output[0], output[1]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -912,7 +936,7 @@ class action(object):
             elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[1]) > rs.count(output[0]):
                 input = [input[1], input[0]]
                 output = [output[0], output[1]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -921,7 +945,7 @@ class action(object):
             if rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[0]) >= rs.count(output[1]):
                 input = [input[1], input[0]]
                 output = [output[1], output[0]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -930,7 +954,7 @@ class action(object):
             elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[0]) >= rs.count(output[1]):
                 input = [input[0], input[1]]
                 output = [output[1], output[0]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -939,7 +963,7 @@ class action(object):
             elif rs.count(input[0]) >= rs.count(input[1]) and rs.count(output[1]) > rs.count(output[0]):
                 input = [input[1], input[0]]
                 output = [output[0], output[1]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
@@ -948,7 +972,7 @@ class action(object):
             elif rs.count(input[1]) > rs.count(input[0]) and rs.count(output[1]) > rs.count(output[0]):
                 input = [input[0], input[1]]
                 output = [output[0], output[1]]
-                io = input + output
+                io = [input[0], output[0], input[1], output[1]]
                 a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
