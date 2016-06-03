@@ -298,6 +298,24 @@ class action(object):
                 if data2 == 3 and data4 == 4 and data1 != data3:
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
 
+        for a, d in G.nodes_iter(data=True):
+            data1 = d['loca']
+            data2 = d['phase']
+            for b, e in G.nodes_iter(data=True):
+                data3 = e['loca']
+                data4 = e['phase']
+                if data2 == 1 and data4 == 3 and data1 == data3 :
+                    if data1[0] == 0:
+                        data1[0] = 1
+                        if G.has_edge('%s_r1' % data1, '%s_s2' % data3) == True :
+                            G.remove_edge('%s_r1' % data1, '%s_s2' % data3)
+                    elif data1[0] == 1:
+                        data1[0] = 0
+                        if G.has_edge('%s_r1' % data1, '%s_s2' % data3) == True :
+                            G.remove_edge('%s_r1' % data1, '%s_s2' % data3)
+
+
+
 
 
 
