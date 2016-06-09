@@ -25,7 +25,7 @@ class ASRSplayer(object):
     STATE_FRAMES = 2  # number of frames to store in the state
     COLUMN, FLOOR = (20,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
-    LEARN_RATE = 1e-2
+    LEARN_RATE = 1e-4
     ITERATION = 1000000
 
 
@@ -178,7 +178,7 @@ class ASRSplayer(object):
         convertedrack = []
         for i in range(len(rack)):
             if rack[i] == -1:
-                convertedrack.append(0.)
+                convertedrack.append(-1.)
             else:
                 convertedrack.append(itr[rack[i]])
         return convertedrack
