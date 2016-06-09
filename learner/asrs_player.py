@@ -16,16 +16,16 @@ import heuristic
 class ASRSplayer(object):
     ACTIONS_COUNT = 4  # number of valid actions.
     FUTURE_REWARD_DISCOUNT = 0.99  # decay rate of past observations
-    OBSERVATION_STEPS = 5000.  # time steps to observe before training
-    EXPLORE_STEPS = 20000.  # frames over which to anneal epsilon
+    OBSERVATION_STEPS = 500.  # time steps to observe before training
+    EXPLORE_STEPS = 2000.  # frames over which to anneal epsilon
     INITIAL_RANDOM_ACTION_PROB = 1.  # starting chance of an action being random
     FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
-    MEMORY_SIZE = 5900  # number of observations to remember
+    MEMORY_SIZE = 590  # number of observations to remember
     MINI_BATCH_SIZE = 32  # size of mini batches
-    STATE_FRAMES = 5  # number of frames to store in the state
+    STATE_FRAMES = 2  # number of frames to store in the state
     COLUMN, FLOOR = (20,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
-    LEARN_RATE = 1e-3
+    LEARN_RATE = 1e-2
     ITERATION = 1000000
 
 
@@ -56,10 +56,6 @@ class ASRSplayer(object):
     def _train(self, training_set, validation_set):
         iter = 0
 
-        best_cycletime = 1000000.
-        best_iter = 0
-        last_20 = deque()
-
         print "obs with random action generating..."
 
         p_idx = 0
@@ -67,8 +63,10 @@ class ASRSplayer(object):
         iter_validation = 0
 
         while iter < self.ITERATION:
+            iter += 1
             training_data = copy.deepcopy(training_set[p_idx])
 
+            itr = training_data.itemTypeRate
             sht = training_data.shuttleNum
             clm = training_data.columnNum
             flr = training_data.floorNum
@@ -78,20 +76,12 @@ class ASRSplayer(object):
             total_cycletime = 0.0
             total_action = [0 for _ in range(self.ACTIONS_COUNT)]
 
-            input = training_data.input[0:0 + sht]
-            output = training_data.output[0:0 + sht]
+            convertedrack = self.convert_rack(rack, itr)
 
-            input = self.sort_by_count(input, rack)
-            output = self.sort_by_count(output, rack)
+            leftrack = self.change_to_two_dimension(convertedrack[:clm * flr], clm, flr)
+            rightrack = self.change_to_two_dimension(convertedrack[clm * flr:], clm, flr)
 
-            foe = state.get_rack_full_or_empty(rack)
-            foe = self.change_to_two_dimension(foe, clm, flr)
-
-            for i in input:
-                foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr), axis=2)
-            for j in output:
-                foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr), axis=2)
-            self._last_state = foe[:, :, :]
+            self._last_state = np.append(leftrack, rightrack, axis=2)
 
             cycleNum = training_data.requestLength / sht
 
@@ -115,20 +105,12 @@ class ASRSplayer(object):
 
                 rack = sim.change_rs(rack, clm, flr, solution)
 
-                input = self.sort_by_count(input, rack)
-                output = self.sort_by_count(output, rack)
+                convertedrack = self.convert_rack(rack, itr)
 
-                foe = state.get_rack_full_or_empty(rack)
-                foe = self.change_to_two_dimension(foe, clm, flr)
+                leftrack = self.change_to_two_dimension(convertedrack[:clm * flr], clm, flr)
+                rightrack = self.change_to_two_dimension(convertedrack[clm * flr:], clm, flr)
 
-                for i in input:
-                    foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr),
-                                    axis=2)
-                for j in output:
-                    foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr),
-                                    axis=2)
-
-                current_state = foe[:, :, :]
+                current_state = np.append(leftrack, rightrack, axis=2)
 
                 if order_idx == cycleNum-1:
                     terminal = True
@@ -189,10 +171,19 @@ class ASRSplayer(object):
                     iter_validation += 1
                     print 'validation', iter_validation
                     for i in range(len(validation_set)):
-                        self.validation_without_update(validation_set[i], i)
+                        self.validation_without_update(validation_set[i], i, itr)
 
 
-    def validation_without_update(self, validation_data, p_idx):
+    def convert_rack(self, rack, itr):
+        convertedrack = []
+        for i in range(len(rack)):
+            if rack[i] == -1:
+                convertedrack.append(0.)
+            else:
+                convertedrack.append(itr[rack[i]])
+        return convertedrack
+
+    def validation_without_update(self, validation_data, p_idx, itr):
         training_data = copy.deepcopy(validation_data)
 
         sht = training_data.shuttleNum
@@ -204,20 +195,12 @@ class ASRSplayer(object):
         total_cycletime = 0.0
         total_action = [0 for _ in range(self.ACTIONS_COUNT)]
 
-        input = training_data.input[0:0 + sht]
-        output = training_data.output[0:0 + sht]
+        convertedrack = self.convert_rack(rack, itr)
 
-        input = self.sort_by_count(input, rack)
-        output = self.sort_by_count(output, rack)
+        leftrack = self.change_to_two_dimension(convertedrack[:clm * flr], clm, flr)
+        rightrack = self.change_to_two_dimension(convertedrack[clm * flr:], clm, flr)
 
-        foe = state.get_rack_full_or_empty(rack)
-        foe = self.change_to_two_dimension(foe, clm, flr)
-
-        for i in input:
-            foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr), axis=2)
-        for j in output:
-            foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr), axis=2)
-        last_state = foe[:, :, :]
+        last_state = np.append(leftrack, rightrack, axis=2)
 
         cycleNum = training_data.requestLength / sht
 
@@ -238,20 +221,12 @@ class ASRSplayer(object):
 
             rack = sim.change_rs(rack, clm, flr, solution)
 
-            input = self.sort_by_count(input, rack)
-            output = self.sort_by_count(output, rack)
+            convertedrack = self.convert_rack(rack, itr)
 
-            foe = state.get_rack_full_or_empty(rack)
-            foe = self.change_to_two_dimension(foe, clm, flr)
+            leftrack = self.change_to_two_dimension(convertedrack[:clm * flr], clm, flr)
+            rightrack = self.change_to_two_dimension(convertedrack[clm * flr:], clm, flr)
 
-            for i in input:
-                foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, i), clm, flr),
-                                axis=2)
-            for j in output:
-                foe = np.append(foe, self.change_to_two_dimension(state.get_rack_same_or_not(rack, j), clm, flr),
-                                axis=2)
-
-            current_state = foe[:, :, :]
+            current_state = np.append(leftrack, rightrack, axis=2)
 
             # update the old values
             last_state = current_state
@@ -347,8 +322,8 @@ class ASRSplayer(object):
 
 if __name__ == '__main__':
     pl = ASRSplayer()
-    tr = problemreader.ProblemReader(25).get_problems(100)
-    va = problemreader.ProblemReader(27).get_problems(10)
+    tr = problemreader.ProblemReader(25).get_problems(1)
+    va = problemreader.ProblemReader(25).get_problems(1)
     pl._train(tr, va)
 
 

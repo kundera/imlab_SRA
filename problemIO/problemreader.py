@@ -16,10 +16,10 @@ class ProblemReader(object):
     def get_problem(self, problem_idx):
         con = MySQLdb.connect(self.DBAdress, self.DBID, self.DBPassward, self.DBName)
         cur = con.cursor()
-        sql = 'SELECT aisleNum, columnNum, floorNum, itemTypeNum,  requestLength, shuttleNum FROM problemConfigNew WHERE idx = '+str(self.table_idx)
+        sql = 'SELECT aisleNum, columnNum, floorNum, itemTypeNum,  itemTypeRate, requestLength, shuttleNum FROM problemConfigNew WHERE idx = '+str(self.table_idx)
         cur.execute(sql)
         row = cur.fetchone()
-        p = problem.Problem(row[0], row[1], row[2], row[3], row[4], row[5])
+        p = problem.Problem(row[0], row[1], row[2], row[3], map(float, row[4].split(", ")), row[5], row[6])
         column = row[1]
         floor = row[2]
 
@@ -36,11 +36,11 @@ class ProblemReader(object):
     def get_problems(self, NO_of_problem):
         con = MySQLdb.connect(self.DBAdress, self.DBID, self.DBPassward, self.DBName)
         cur = con.cursor()
-        sql = 'SELECT aisleNum, columnNum, floorNum, itemTypeNum,  requestLength, shuttleNum FROM problemConfigNew WHERE idx = ' + str(
+        sql = 'SELECT aisleNum, columnNum, floorNum, itemTypeNum,  itemTypeRate, requestLength, shuttleNum FROM problemConfigNew WHERE idx = ' + str(
             self.table_idx)
         cur.execute(sql)
         row = cur.fetchone()
-        a0, a1, a2, a3, a4, a5 = row[0], row[1], row[2], row[3], row[4], row[5]
+        a0, a1, a2, a3, a4, a5, a6 = row[0], row[1], row[2], row[3], map(float, row[4].split(", ")), row[5], row[6]
 
         ps = []
 
@@ -48,7 +48,7 @@ class ProblemReader(object):
         cur.execute(sql)
         for i in range(cur.rowcount):
             row = cur.fetchone()
-            p = problem.Problem(a0, a1, a2, a3, a4, a5)
+            p = problem.Problem(a0, a1, a2, a3, a4, a5, a6)
             ra = rack.rack(map(int, row[0].split(", ")), a1, a2)
             p.set_problem(ra, map(int, row[1].split(", ")), map(int, row[2].split(", ")))
             ps.append(p)

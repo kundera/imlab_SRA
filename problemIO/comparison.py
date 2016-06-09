@@ -42,3 +42,4 @@ def dijk(test_data):
 if __name__ == '__main__':
     pr2 = problemreader.ProblemReader(27)
     dijk(pr2.get_problems(10))
+
