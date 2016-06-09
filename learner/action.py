@@ -3,6 +3,7 @@ import networkx as nx
 import math
 import solution
 from simulator import nextstate
+from simulator import visualize_rack
 from collections import Counter
 import matplotlib.pyplot as plt
 
@@ -1121,11 +1122,11 @@ class action(object):
 
 if __name__ == '__main__':
     test = problemreader.ProblemReader(25)
-    rs = test.get_problem(1).rack.status
-    column = test.get_problem(1).rack.column
-    floor = test.get_problem(1).rack.floor
-    input = test.get_problem(1).input
-    output = test.get_problem(1).output
+    rs = test.get_problem(2).rack.status
+    column = test.get_problem(2).rack.column
+    floor = test.get_problem(2).rack.floor
+    input = test.get_problem(2).input
+    output = test.get_problem(2).output
 
     ts = action()
     sm = nextstate.simul()
@@ -1133,11 +1134,22 @@ if __name__ == '__main__':
     cycletime1 = 0
     cycletime2 = 0
     cycletime3 = 0
+    cycletime4 = 0
+    cycletime5 = 0
+    cycletime6 = 0
+    cycletime7 = 0
 
-    rs0 = rs
-    rs1 = rs
-    rs2 = rs
-    rs3 = rs
+    rs0 = test.get_problem(2).rack.status
+    rs1 = test.get_problem(2).rack.status
+    rs2 = test.get_problem(2).rack.status
+    rs3 = test.get_problem(2).rack.status
+    rs4 = test.get_problem(2).rack.status
+    rs5 = test.get_problem(2).rack.status
+    rs6 = test.get_problem(2).rack.status
+    rs7 = test.get_problem(2).rack.status
+
+    # vr = visualize_rack.visualize()
+    # vr.visual_rack(rs,column,floor)
 
     for i in range(len(input)/2):
         inputs = input[(i+1)*2-2:(i+1)*2]
@@ -1149,15 +1161,48 @@ if __name__ == '__main__':
         e,f = ts.dijk_srsr_faster_one(rs2,column,floor,inputs,outputs)
         print e.type, e.loc
         g,h = ts.dijk_srsr_density_test_fixed_output(rs3,column,floor,inputs,outputs)
+        print g.type, g.loc
+        i,j = ts.dijk_srsr_density(rs4,column,floor,inputs,outputs,0)
+        print i.type, i.loc
+        l,m = ts.dijk_srsr_density(rs5,column,floor,inputs,outputs,1)
+        print l.type, l.loc
+        n,o = ts.dijk_srsr_density(rs6,column,floor,inputs,outputs,2)
+        print n.type, n.loc
+        p,q = ts.dijk_srsr_density(rs7,column,floor,inputs,outputs,3)
+        print p.type, p.loc
         cycletime0 += b
         cycletime1 += d
         cycletime2 += f
+        cycletime3 += h
+        cycletime4 += j
+        cycletime5 += m
+        cycletime6 += o
+        cycletime7 += q
         rs0 = sm.change_rs(rs0,column,floor,a)
         rs1 = sm.change_rs(rs1,column,floor,c)
         rs2 = sm.change_rs(rs2,column,floor,e)
         rs3 = sm.change_rs(rs3,column,floor,g)
+        rs4 = sm.change_rs(rs4,column,floor,i)
+        rs5 = sm.change_rs(rs5,column,floor,l)
+        rs6 = sm.change_rs(rs6,column,floor,n)
+        rs7 = sm.change_rs(rs7,column,floor,p)
 
-    print cycletime0, cycletime1, cycletime2, cycletime3
+    print "abc large > few :" + str(cycletime0)
+    print "abc few > large :" + str(cycletime1)
+    print "dijk_srsr_faster_one :" + str(cycletime2)
+    print "dijk_srsr fixed retrieval(large>few) :" + str(cycletime3)
+    print "dijk_srsr_density_0 :" + str(cycletime4)
+    print "dijk_srsr_density_1 :" + str(cycletime5)
+    print "dijk_srsr_density_2 :" + str(cycletime6)
+    print "dijk_srsr_density_3 :" + str(cycletime7)
+    # vr.visual_rack(rs0, column, floor)
+    # vr.visual_rack(rs1, column, floor)
+    # vr.visual_rack(rs2, column, floor)
+    # vr.visual_rack(rs3, column, floor)
+    # vr.visual_rack(rs4, column, floor)
+    # vr.visual_rack(rs5, column, floor)
+    # vr.visual_rack(rs6, column, floor)
+    # vr.visual_rack(rs7, column, floor)
 
 
 
