@@ -2,7 +2,7 @@ from problemIO import problemreader
 import networkx as nx
 import math
 import solution
-
+from simulator import nextstate
 from collections import Counter
 import matplotlib.pyplot as plt
 
@@ -978,12 +978,149 @@ class action(object):
                 cycletime = c1
                 return sol, cycletime
 
+    def dijk_srsr_density_test_fixed_output(self, rs, column, floor, input, output):
+
+        if output[0] <= output[1]:
+            io = [input[0], output[0], input[1], output[1]]
+            a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+            sol = solution.solution(d1, io, e1)
+            cycletime = c1
+            return sol, cycletime
+
+        elif output[1] < output[0]:
+            io = [input[0], output[1], input[1], output[0]]
+            a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+            sol = solution.solution(d1, io, e1)
+            cycletime = c1
+            return sol, cycletime
+
+    def dijk_srsr_faster_one(self, rs, column, floor, input, output):
+
+        a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+        a2, b2, c2, d2, e2 = self.dijk_sr2sr1(rs, column, floor, output)
+
+        if c1 <= c2:
+            io = [input[0], output[0], input[1], output[1]]
+            sol = solution.solution(d1, io, e1)
+            cycletime = c1
+            return sol, cycletime
+        elif c2 < c1:
+            io = [input[0], output[0], input[1], output[1]]
+            sol = solution.solution(d1, io, e1)
+            cycletime = c1
+            return sol, cycletime
+
+
+
+
+
+    def dijk_srsr_with_abc_a(self, rs, column, floor, input, output): # large - few
+
+        a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+        a2, b2, c2, d2, e2 = self.dijk_sr2sr1(rs, column, floor, output)
+
+        if c1 <= c2 :
+            if self.get_time([0, 0, 0], d1[0]) <= self.get_time([0, 0, 0], d1[2]) and input[0] <= input[1]:
+                io = [input[0], output[0], input[1], output[1]]
+                sol = solution.solution(d1,io,e1)
+                cycletime = c1
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d1[0]) <= self.get_time([0, 0, 0], d1[2]) and input[1] < input[0]:
+                io = [input[1], output[0], input[0], output[1]]
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d1[0]) > self.get_time([0, 0, 0], d1[2]) and input[0] <= input[1]:
+                io = [input[1], output[0], input[0], output[1]]
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d1[0]) > self.get_time([0, 0, 0], d1[2]) and input[1] < input[0]:
+                io = [input[0], output[0], input[1], output[1]]
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+        elif c1 > c2:
+            if self.get_time([0, 0, 0], d2[0]) <= self.get_time([0, 0, 0], d2[2]) and input[0] <= input[1]:
+                io = [input[0], output[0], input[1], output[1]]
+                sol = solution.solution(d2,io,e2)
+                cycletime = c2
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d2[0]) <= self.get_time([0, 0, 0], d2[2]) and input[1] < input[0]:
+                io = [input[1], output[0], input[0], output[1]]
+                sol = solution.solution(d2, io, e2)
+                cycletime = c2
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d2[0]) > self.get_time([0, 0, 0], d2[2]) and input[0] <= input[1]:
+                io = [input[1], output[0], input[0], output[1]]
+                sol = solution.solution(d2, io, e2)
+                cycletime = c2
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d2[0]) > self.get_time([0, 0, 0], d2[2]) and input[1] < input[0]:
+                io = [input[0], output[0], input[1], output[1]]
+                sol = solution.solution(d2, io, e2)
+                cycletime = c2
+                return sol, cycletime
+
+    def dijk_srsr_with_abc_b(self, rs, column, floor, input, output):  # few - large
+
+        a1, b1, c1, d1, e1 = self.dijk_sr1sr2(rs, column, floor, output)
+        a2, b2, c2, d2, e2 = self.dijk_sr2sr1(rs, column, floor, output)
+
+        if c1 <= c2:
+            if self.get_time([0, 0, 0], d1[0]) <= self.get_time([0, 0, 0], d1[2]) and input[0] <= input[1]:
+                io = [input[1], output[0], input[0], output[1]]
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d1[0]) <= self.get_time([0, 0, 0], d1[2]) and input[1] < input[0]:
+                io = [input[0], output[0], input[1], output[1]]
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d1[0]) > self.get_time([0, 0, 0], d1[2]) and input[0] <= input[1]:
+                io = [input[0], output[0], input[1], output[1]]
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d1[0]) > self.get_time([0, 0, 0], d1[2]) and input[1] < input[0]:
+                io = [input[1], output[0], input[0], output[1]]
+                sol = solution.solution(d1, io, e1)
+                cycletime = c1
+                return sol, cycletime
+
+        elif c1 > c2:
+            if self.get_time([0, 0, 0], d2[0]) <= self.get_time([0, 0, 0], d2[2]) and input[0] <= input[1]:
+                io = [input[1], output[0], input[0], output[1]]
+                sol = solution.solution(d2, io, e2)
+                cycletime = c2
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d2[0]) <= self.get_time([0, 0, 0], d2[2]) and input[1] < input[0]:
+                io = [input[0], output[0], input[1], output[1]]
+                sol = solution.solution(d2, io, e2)
+                cycletime = c2
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d2[0]) > self.get_time([0, 0, 0], d2[2]) and input[0] <= input[1]:
+                io = [input[0], output[0], input[1], output[1]]
+                sol = solution.solution(d2, io, e2)
+                cycletime = c2
+                return sol, cycletime
+            elif self.get_time([0, 0, 0], d2[0]) > self.get_time([0, 0, 0], d2[2]) and input[1] < input[0]:
+                io = [input[1], output[0], input[0], output[1]]
+                sol = solution.solution(d2, io, e2)
+                cycletime = c2
+                return sol, cycletime
+
+
+
+
 
 
 
 
 if __name__ == '__main__':
-    test = problemreader.ProblemReader(26)
+    test = problemreader.ProblemReader(25)
     rs = test.get_problem(1).rack.status
     column = test.get_problem(1).rack.column
     floor = test.get_problem(1).rack.floor
@@ -992,16 +1129,36 @@ if __name__ == '__main__':
 
     ts = action()
     sm = nextstate.simul()
-    cycletime = 0
+    cycletime0 = 0
+    cycletime1 = 0
+    cycletime2 = 0
+    cycletime3 = 0
 
-    for i in range(len(input)):
+    rs0 = rs
+    rs1 = rs
+    rs2 = rs
+    rs3 = rs
+
+    for i in range(len(input)/2):
         inputs = input[(i+1)*2-2:(i+1)*2]
         outputs = output[(i + 1) * 2 - 2:(i + 1) * 2]
-        a,b = ts.dijk(rs,column,floor,inputs,outputs)
-        cycletime += b
-        sm.change_rs(rs,column,floor,a)
+        a,b = ts.dijk_srsr_with_abc_a(rs0,column,floor,inputs,outputs)
+        print a.type, a.loc
+        c,d = ts.dijk_srsr_with_abc_b(rs1,column,floor,inputs,outputs)
+        print c.type, c.loc
+        e,f = ts.dijk_srsr_faster_one(rs2,column,floor,inputs,outputs)
+        print e.type, e.loc
+        g,h = ts.dijk_srsr_density_test_fixed_output(rs3,column,floor,inputs,outputs)
+        cycletime0 += b
+        cycletime1 += d
+        cycletime2 += f
+        rs0 = sm.change_rs(rs0,column,floor,a)
+        rs1 = sm.change_rs(rs1,column,floor,c)
+        rs2 = sm.change_rs(rs2,column,floor,e)
+        rs3 = sm.change_rs(rs3,column,floor,g)
 
-    print cycletime
+    print cycletime0, cycletime1, cycletime2, cycletime3
+
 
 
     #ts.abc_action_SSRR(rs,column,floor,input,output)
