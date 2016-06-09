@@ -40,6 +40,6 @@ def dijk(test_data):
         print total_elapsed
 
 if __name__ == '__main__':
-    pr2 = problemreader.ProblemReader(27)
+    pr2 = problemreader.ProblemReader(25)
     dijk(pr2.get_problems(10))
 
