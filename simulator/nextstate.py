@@ -1,14 +1,11 @@
 from problemIO import problemreader
 from learner import solution
-from learner import action
-from learner import actiongenerator
-
 
 
 class simul(object):
 
-
-    def change_rs_from_problem(self, tidx, pidx, order_raw):  # order_raw format : [[59,51,68,1],[[1,0,0],[1,0,1],[1,0,1],[1,4,1]],['S','R','S','R']]
+    def change_rs_from_problem(self, tidx, pidx, order_raw):
+        # order_raw format : [[59,51,68,1],[[1,0,0],[1,0,1],[1,0,1],[1,4,1]],['S','R','S','R']]
         test = problemreader.ProblemReader(tidx)
         rs2 = test.get_problems(pidx)[pidx - 1].rack.status
         rack_size_h = test.get_problems(pidx)[pidx - 1].rack.column
@@ -35,9 +32,8 @@ class simul(object):
 
         return rs2
 
-
     def change_rs(self, rs, column, floor, sol):
-                  # rs format : [-1,1,2,3,4,2,-1]
+        # rs format : [-1,1,2,3,4,2,-1]
 
         rs2 = rs
         rack_size_h = column
@@ -67,6 +63,6 @@ if __name__ == '__main__':
     floor = test.get_problem(1).rack.floor
     input = test.get_problem(1).input
     output = test.get_problem(1).output
-    solu,ct = action.action().dijk(rs,column,floor,input[0:2],output[0:2])
+    # solu,ct = action.action().dijk(rs,column,floor,input[0:2],output[0:2])
 
 
