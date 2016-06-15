@@ -1,8 +1,10 @@
 import networkx as nx
 from copy import deepcopy
+import matplotlib.pyplot as plt
 import Queue
 import math
 import time
+
 
 from problemIO import problemreader
 import solution
@@ -191,38 +193,23 @@ class KSP():
         size_h = column
         size_v = floor
 
-        # create first 'S'
+        # create S1
         for a, item1 in enumerate(rack):
             if item1 == -1:
                 loca1 = self.loca_calculate(a, size_h, size_v)
-                # print loca1
                 G.add_node('%s_s1' % loca1, loca=loca1, phase=1)
                 G.add_edge('start', '%s_s1' % loca1, weight=self.get_time(init_loca, loca1))
 
-        # create r1
+        # create R1
         for b, item2 in enumerate(rack):
-            loca2 = self.loca_calculate(b, size_h, size_v)
             if item2 == outputs[0]:
+                loca2 = self.loca_calculate(b, size_h, size_v)
                 G.add_node('%s_r1' % loca2, loca=loca2, phase=2)
+                # create S2
+                G.add_node('%s_s2' % loca2, loca=loca2, phase=3)
+                G.add_edge('%s_r1' % loca2, '%s_s2' % loca2, weight=self.get_time(loca2, loca2))
 
-                # create s2
-                for c, item3 in enumerate(rack):
-                    loca3 = self.loca_calculate(c, size_h, size_v)
-                    if loca3[0] != loca2[0] and item3 == -1 and loca3[1:3] == loca2[1:3]:
-                        G.add_node('%s_s2' % loca3, loca=loca3, phase=3)
-                        G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
-
-                    elif loca3 == loca2:
-                        G.add_node('%s_s2' % loca3, loca=loca3, phase=3)
-                        G.add_edge('%s_r1' % loca2, '%s_s2' % loca3, weight=self.get_time(loca2, loca3))
-
-        # create r2
-        for d, item4 in enumerate(rack):
-            if item4 == outputs[1]:
-                loca4 = self.loca_calculate(d, size_h, size_v)
-                G.add_node('%s_r2' % loca4, loca=loca4, phase=4)
-                G.add_edge('%s_r2' % loca4, 'end', weight=self.get_time(loca4, end_loca))
-
+        # connect node S1-R1
         for a, d in G.nodes_iter(data=True):
             data1 = d['loca']
             data2 = d['phase']
@@ -232,6 +219,14 @@ class KSP():
                 if data2 == 1 and data4 == 2:
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
 
+        # create R2
+        for d, item4 in enumerate(rack):
+            if item4 == outputs[1]:
+                loca4 = self.loca_calculate(d, size_h, size_v)
+                G.add_node('%s_r2' % loca4, loca=loca4, phase=4)
+                G.add_edge('%s_r2' % loca4, 'end', weight=self.get_time(loca4, end_loca))
+
+        # connect node S2-R2
         for a, d in G.nodes_iter(data=True):
             data1 = d['loca']
             data2 = d['phase']
@@ -240,25 +235,17 @@ class KSP():
                 data4 = e['phase']
                 if data2 == 3 and data4 == 4 and data1 != data3:
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
+        # nx.draw_networkx(G, arrows=True, with_labels=True)
+        # plt.show()
+        k_path, path_costs = self.yen(G, 'start', 'end', 20)
+        paths = []
+        costs = []
 
-        for a, d in G.nodes_iter(data=True):
-            data1 = d['loca']
-            data2 = d['phase']
-            for b, e in G.nodes_iter(data=True):
-                data3 = e['loca']
-                data4 = e['phase']
-                if data2 == 1 and data4 == 3 and data1 == data3:
-                    if data1[0] == 0:
-                        data1[0] = 1
-                        if G.has_edge('%s_r1' % data1, '%s_s2' % data3):
-                            G.remove_edge('%s_r1' % data1, '%s_s2' % data3)
-                    elif data1[0] == 1:
-                        data1[0] = 0
-                        if G.has_edge('%s_r1' % data1, '%s_s2' % data3):
-                            G.remove_edge('%s_r1' % data1, '%s_s2' % data3)
-
-        k_path, path_costs = self.yen(G, 'start', 'end', itr)
-        return k_path, path_costs
+        for temp in range(len(k_path)):
+            if k_path[temp][2][0:-3] == k_path[temp][3][0:-3]:
+                paths.append(k_path[temp])
+                costs.append(path_costs[temp])
+        return paths, costs
 
     def get_sol(self, k_path, path_costs, inputs, outputs, idx):
         io = ['S', 'R', 'S', 'R']
@@ -269,8 +256,8 @@ class KSP():
         return sol, path_costs[idx]
 
 if __name__ == '__main__':
-    probnum = 26
-    pronum = 1
+    probnum = 28
+    pronum = 3
     test = problemreader.ProblemReader(probnum)
     rs = test.get_problem(pronum).rack.status
     column = test.get_problem(pronum).rack.column
@@ -282,12 +269,11 @@ if __name__ == '__main__':
     outputs = output[0:2]
 
     ksp = KSP()
-    k = 20
+    k = 40
     k_paths, k_costs = ksp.k_shortest_path(rs, column, floor, outputs, k)
     print "K = ", k
     for temp in range(len(k_paths)):
-        print temp
         sol, cyc = ksp.get_sol(k_paths, k_costs, inputs, outputs, temp)
-        print sol.oper, sol.loc, sol.type, cyc
+        print temp, sol.oper, sol.loc, sol.type, cyc
 
     print '-------------------------'
