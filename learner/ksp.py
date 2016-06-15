@@ -94,8 +94,11 @@ class KSP():
             for i in range(len(A[k - 1]) - 1):
                 # Spur node ranges over the (k-1)-shortest path minus its last node:
                 sn = A[k - 1][i]
+                if sn[-2:] == 'r2':
+                    break
                 # Root path: from the source to the spur node of the (k-1)-shortest path
                 rp = A[k - 1][:i]
+
                 # We store the removed edges
                 removed_edges = []
                 removed_root_edges = []
@@ -135,11 +138,13 @@ class KSP():
                     if erp == p[:i + 1] and G.has_edge(p[i], p[i + 1]):
                         removed_edges.append(self.cprm(G, p[i], p[i + 1]))
                 # The spur path
+
                 DONE = 0
                 try:
                     (csp, sp) = nx.single_source_dijkstra(G, sn, target)
                     sp = sp[target]
                     csp = csp[target]
+
                 except:
                     # there is no spur path if sn is not connected to the target
                     sp = []
@@ -178,7 +183,9 @@ class KSP():
                 if path not in A:
                     if path[2][0:-3] == path[3][0:-3]:
                         A.append(path)
+                        # print k, path
                         A_cost.append(cost)
+
                         k += 1
                         break
 
@@ -272,7 +279,7 @@ if __name__ == '__main__':
     outputs = output[0:2]
 
     ksp = KSP()
-    k = 40
+    k = 30
     k_paths, k_costs = ksp.k_shortest_path(rs, column, floor, outputs, k)
     print "K = ", k
     for temp in range(len(k_paths)):
