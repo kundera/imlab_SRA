@@ -81,15 +81,16 @@ class KSP():
         return n, ec
 
     # K shortest paths in G from 'source' to 'target'
-    def yen(self, G, source, target, K):
+    def yen(self, G, source, target, itr):
         # First shortest path from the source to the target
-        (c, p) = nx.single_source_dijkstra(G, source, target)
-        A = [p[target]]
-        A_cost = [c[target]]
+        c, p = nx.single_source_dijkstra(G, source, target)
+        A = [p[target]]  # path
+        A_cost = [c[target]]  # length
         B = Queue.PriorityQueue()
 
-        for k in range(1, K):
-
+        # for k in range(1, K):
+        k = 1
+        while itr > k:
             for i in range(len(A[k - 1]) - 1):
                 # Spur node ranges over the (k-1)-shortest path minus its last node:
                 sn = A[k - 1][i]
@@ -175,9 +176,11 @@ class KSP():
             while not B.empty():
                 cost, path = B.get()
                 if path not in A:
-                    A.append(path)
-                    A_cost.append(cost)
-                    break
+                    if path[2][0:-3] == path[3][0:-3]:
+                        A.append(path)
+                        A_cost.append(cost)
+                        k += 1
+                        break
 
         return A, A_cost
 
@@ -237,15 +240,15 @@ class KSP():
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
         # nx.draw_networkx(G, arrows=True, with_labels=True)
         # plt.show()
-        k_path, path_costs = self.yen(G, 'start', 'end', 20)
-        paths = []
-        costs = []
-
-        for temp in range(len(k_path)):
-            if k_path[temp][2][0:-3] == k_path[temp][3][0:-3]:
-                paths.append(k_path[temp])
-                costs.append(path_costs[temp])
-        return paths, costs
+        k_path, path_costs = self.yen(G, 'start', 'end', itr)
+        # paths = []
+        # costs = []
+        #
+        # for temp in range(len(k_path)):
+        #     if k_path[temp][2][0:-3] == k_path[temp][3][0:-3]:
+        #         paths.append(k_path[temp])
+        #         costs.append(path_costs[temp])
+        return k_path, path_costs
 
     def get_sol(self, k_path, path_costs, inputs, outputs, idx):
         io = ['S', 'R', 'S', 'R']
@@ -257,7 +260,7 @@ class KSP():
 
 if __name__ == '__main__':
     probnum = 28
-    pronum = 3
+    pronum = 1
     test = problemreader.ProblemReader(probnum)
     rs = test.get_problem(pronum).rack.status
     column = test.get_problem(pronum).rack.column
