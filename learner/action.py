@@ -276,7 +276,8 @@ class action(object):
         for n, nbrs in G.adjacency_iter():
             for nbr, eattr in nbrs.items():
                 data = eattr['weight']
-                if float(data) == 0 and n != 'start' and n != 'end' and nbr != 'start' and nbr != 'end':
+                # if float(data) == 0  and n != 'start' and n != 'end' and nbr != 'start' and nbr != 'end':
+                if n[0:-3] == nbr[0:-3]:
                     G.remove_edge('%s' % n, '%s' % nbr)
 
         #print G.node
@@ -287,8 +288,8 @@ class action(object):
         path = nx.dijkstra_path(G,'start','end')
         length = nx.dijkstra_path_length(G, 'start', 'end')
         io = ['S', 'S', 'R', 'R']
-        #nx.draw_networkx(G ,arrows=True,with_labels=True)
-        #plt.show()
+        # nx.draw_networkx(G ,arrows=True,with_labels=True)
+        # plt.show()
         return 'SSR1R2', path, length, self.print_dijk(G), io
 
     def dijk_ssr2r1(self, rs, column, floor, outputs):  # ex :outputs = [10,18]
@@ -362,7 +363,8 @@ class action(object):
         for n, nbrs in G.adjacency_iter():
             for nbr, eattr in nbrs.items():
                 data = eattr['weight']
-                if float(data) == 0 and n != 'start' and n != 'end' and nbr != 'start' and nbr != 'end':
+                # if float(data) == 0 and n != 'start' and n != 'end' and nbr != 'start' and nbr != 'end':
+                if n[0:-3] == nbr[0:-3]:
                     G.remove_edge('%s' % n, '%s' % nbr)
 
         path = nx.dijkstra_path(G,'start','end')
@@ -1330,37 +1332,34 @@ class action(object):
 
 
 if __name__ == '__main__':
-    test = problemreader.ProblemReader(26)
-    rs = test.get_problem(1).rack.status
-    column = test.get_problem(1).rack.column
-    floor = test.get_problem(1).rack.floor
-    input = test.get_problem(1).input
-    output = test.get_problem(1).output
+    test = problemreader.ProblemReader(28)
+    rs = test.get_problem(3).rack.status
+    column = test.get_problem(3).rack.column
+    floor = test.get_problem(3).rack.floor
+    input = test.get_problem(3).input
+    output = test.get_problem(3).output
 
 
 
     ts = action()
     sm = nextstate.simul()
-    cycletime0 = 0
-    cycletime1 = 0
-    cycletime2 = 0
-    cycletime3 = 0
-    cycletime4 = 0
-    cycletime5 = 0
-    cycletime6 = 0
-    cycletime7 = 0
-    input = input[0:2]
-    output = output[4:6]
-    print ts.dijk_sr1sr2(rs,column,floor,output)
-    abc = 0
-    # for cycle in range(len(input)/2):
-    #     print cycle
-    #     inputs = input[(cycle+1)*2-2:(cycle+1)*2]
-    #     outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
-    #     a,b = ts.dijk_srsr_faster_one(rs, column, floor,inputs, outputs)
-    #     rs = sm.change_rs(rs, column, floor, a)
-    #     cycletime0 += b
-    # print cycletime0
+
+    # rs = [8, 20, 10, 5, 7, 20, -1, 8, -1, -1, 18, 13, 10, 5, 13, 1, 4, -1, 14, 1, 14, 0, 4, 7, 13, 10, 12, 9, 14, 22, 10, 1, 15, 13, 15, -1, -1, 12, 16, -1, 6, 7, 17, 25, 9, 15, -1, 8, 17, -1, 0, 4, 19, 12, 17, 4, -1, 13, 20, 6, 4, -1, 17, 5, 8, 11, 9, -1, -1, 10, 13, 6, 17, 17, -1, 17, -1, 9, -1, 21, 5, 15, 5, 2, 20, 4, -1, -1, 12, 21, 7, 2, 4, 19, -1, -1, -1, 4, 13, 16, 17, 3, 6, 5, 13, 18, 6, -1, -1, 0, 7, 15, 8, 9, 10, 5, 9, 2, 18, 13, 18, 17, 19, 5, 13, 5, 13, 4, -1, 2, 17, 6, 5, 7, 20, 15, -1, -1, 6, 5, 15, 19, 20, 15, 8, -1, -1, 23, 5, 5, 19, 15, 2, 9, 5, 16, 16, -1, -1, 1, 2, 13, 18, 15, 13, 11, -1, 7, 9, -1, 2, 4, 19, 20, 16, 16, -1, 5, -1, -1, 13, 4, 20, 2, 19, 10, -1, 17, -1, -1, 4, 22, 10, 9, 5, -1, -1, 14, 17, 20]
+    # input = [19,8]
+    # output = [11,11]
+    # ts.dijk(rs,column,floor,input,output)
+
+    print rs
+    for cycle in range(len(input)/2):
+        print cycle
+        inputs = input[(cycle+1)*2-2:(cycle+1)*2]
+        outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+        print inputs
+        print outputs
+        a,b = ts.dijk(rs, column, floor,inputs, outputs)
+        rs = sm.change_rs(rs, column, floor, a)
+        print rs
+
 
 
 
