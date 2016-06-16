@@ -12,7 +12,7 @@ def dijk(test_data):
     for problem_set in test_data:
 
         cnt += 1
-        if cnt == 1 or cnt == 2:
+        if cnt == 3:
             continue
 
         total_cycletime = 0.0
@@ -36,8 +36,7 @@ def dijk(test_data):
 
             at = action.action()
             start = time.time()
-
-            print order_idx, total_cycletime, input, output, rack
+            #print order_idx, total_cycletime, input, output, rack
             solution,cycletime = at.dijk(rack, clm, flr, input, output)
 
             end = time.time()
@@ -48,6 +47,7 @@ def dijk(test_data):
             elapsed = end - start
             total_cycletime += cycletime
             total_elapsed += elapsed
+        print total_cycletime
 
 
 
