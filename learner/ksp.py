@@ -81,7 +81,7 @@ class KSP():
         return n, ec
 
     # K shortest paths in G from 'source' to 'target'
-    def yen(self, G, source, target, itr):
+    def numbered_yen(self, G, source, target, itr):
         # First shortest path from the source to the target
         c, p = nx.single_source_dijkstra(G, source, target)
         A = [p[target]]  # path
@@ -94,8 +94,11 @@ class KSP():
             for i in range(len(A[k - 1]) - 1):
                 # Spur node ranges over the (k-1)-shortest path minus its last node:
                 sn = A[k - 1][i]
+                if sn[-2:] == 'r2':
+                    break
                 # Root path: from the source to the spur node of the (k-1)-shortest path
                 rp = A[k - 1][:i]
+
                 # We store the removed edges
                 removed_edges = []
                 removed_root_edges = []
@@ -135,11 +138,13 @@ class KSP():
                     if erp == p[:i + 1] and G.has_edge(p[i], p[i + 1]):
                         removed_edges.append(self.cprm(G, p[i], p[i + 1]))
                 # The spur path
+
                 DONE = 0
                 try:
                     (csp, sp) = nx.single_source_dijkstra(G, sn, target)
                     sp = sp[target]
                     csp = csp[target]
+
                 except:
                     # there is no spur path if sn is not connected to the target
                     sp = []
@@ -178,13 +183,132 @@ class KSP():
                 if path not in A:
                     if path[2][0:-3] == path[3][0:-3]:
                         A.append(path)
+                        # print k, path
                         A_cost.append(cost)
+
                         k += 1
                         break
 
         return A, A_cost
 
-    def k_shortest_path(self, rs, column, floor, outputs, itr):
+    # test
+    def difference_yen(self, G, source, target, differ):
+        # First shortest path from the source to the target
+        c, p = nx.single_source_dijkstra(G, source, target)
+        A = [p[target]]  # path
+        A_cost = [c[target]]  # length
+        B = Queue.PriorityQueue()
+
+        target_time = c[target] + differ
+        # for k in range(1, K):
+        k = 1
+        while True:
+            for i in range(len(A[k - 1]) - 1):
+                # Spur node ranges over the (k-1)-shortest path minus its last node:
+                sn = A[k - 1][i]
+                if sn[-2:] == 'r2':
+                    break
+                # Root path: from the source to the spur node of the (k-1)-shortest path
+                rp = A[k - 1][:i]
+
+                # We store the removed edges
+                removed_edges = []
+                removed_root_edges = []
+                removed_root_nodes = []
+                # Remove the root paths
+                for j in range(len(rp) - 1):
+
+                    extra_edges = []
+                    extra_edges = G.edges(rp[j])
+
+                    for eg in extra_edges:
+                        src = eg[0]
+                        tgt = eg[1]
+
+                        removed_root_edges.append(self.cprm(G, src, tgt))
+
+                    removed_root_nodes.append(self.cprmnode(G, rp[j]))
+
+                    # G.remove_node(rp[j])
+
+                if len(rp) > 0 and sn != target:
+
+                    extra_edges = []
+                    extra_edges = G.edges(rp[len(rp) - 1])
+
+                    for eg in extra_edges:
+                        src = eg[0]
+                        tgt = eg[1]
+                        removed_root_edges.append(self.cprm(G, src, tgt))
+
+                    removed_root_nodes.append(self.cprmnode(G, rp[len(rp) - 1]))
+
+                # Remove the edges that are part of the already-found k-shortest paths
+                # which share the same extended root path
+                erp = A[k - 1][:i + 1]  # extended root path
+                for p in A:
+                    if erp == p[:i + 1] and G.has_edge(p[i], p[i + 1]):
+                        removed_edges.append(self.cprm(G, p[i], p[i + 1]))
+                # The spur path
+
+                DONE = 0
+                try:
+                    (csp, sp) = nx.single_source_dijkstra(G, sn, target)
+                    sp = sp[target]
+                    csp = csp[target]
+
+                except:
+                    # there is no spur path if sn is not connected to the target
+                    sp = []
+                    csp = None
+                    DONE = 1
+                    # return (A, A_cost)
+                if len(sp) > 0:
+                    # The potential k-th shortest path (the root path may be empty)
+                    pk = rp + sp
+
+                    for nd in removed_root_nodes:
+                        G.add_node(*nd)
+
+                    for re in removed_root_edges:
+                        G.add_edge(*re)
+                    cpk = self.pweight(G, pk)
+                    # Add the potential k-shortest path to the heap
+                    B.put((cpk, pk))
+                # Add back the edges that were removed
+                if len(sp) == 0:
+                    for nd in removed_root_nodes:
+                        G.add_node(*nd)
+                    for re in removed_root_edges:
+                        G.add_edge(*re)
+                for re in removed_edges:
+                    G.add_edge(*re)
+                for nd in removed_root_nodes:
+                    G.add_node(*nd)
+
+            if B.empty():
+                print 'There are only', k, 'shortest paths for this pair'
+                break
+            # The shortest path in B that is not already in A is the new k-th shortest path
+            while not B.empty():
+                cost, path = B.get()
+                if path not in A:
+                    if path[2][0:-3] == path[3][0:-3]:
+                        A.append(path)
+                        # print k, path
+                        A_cost.append(cost)
+
+                        k += 1
+                        break
+            # print k
+            if target_time < A_cost[-1]:
+                A.pop()
+                A_cost.pop()
+                break
+
+        return A, A_cost
+
+    def k_shortest_path(self, rs, column, floor, inputs, outputs, itr):
 
         G = nx.Graph()
 
@@ -238,29 +362,27 @@ class KSP():
                 data4 = e['phase']
                 if data2 == 3 and data4 == 4 and data1 != data3:
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
-        # nx.draw_networkx(G, arrows=True, with_labels=True)
-        # plt.show()
-        k_path, path_costs = self.yen(G, 'start', 'end', itr)
-        # paths = []
-        # costs = []
-        #
-        # for temp in range(len(k_path)):
-        #     if k_path[temp][2][0:-3] == k_path[temp][3][0:-3]:
-        #         paths.append(k_path[temp])
-        #         costs.append(path_costs[temp])
-        return k_path, path_costs
 
-    def get_sol(self, k_path, path_costs, inputs, outputs, idx):
+        # make k paths
+        # k_path, path_costs = self.yen(G, 'start', 'end', itr)
+
+        k_path, path_costs = self.difference_yen(G, 'start', 'end', itr)
+
         io = ['S', 'R', 'S', 'R']
         item = [inputs[0], outputs[0], inputs[1], outputs[1]]
-        path = self.print_dijk(k_path[idx])
-        sol = solution.solution(path, item, io)
+        sols = []
 
-        return sol, path_costs[idx]
+        # make array of solutions
+        for temp in range(len(k_path)):
+            path = self.print_dijk(k_path[temp])
+            sol = solution.solution(path, item, io)
+            sols.append(sol)
+
+        return sols, path_costs
 
 if __name__ == '__main__':
     probnum = 28
-    pronum = 1
+    pronum = 2
     test = problemreader.ProblemReader(probnum)
     rs = test.get_problem(pronum).rack.status
     column = test.get_problem(pronum).rack.column
@@ -272,11 +394,9 @@ if __name__ == '__main__':
     outputs = output[0:2]
 
     ksp = KSP()
-    k = 40
-    k_paths, k_costs = ksp.k_shortest_path(rs, column, floor, outputs, k)
-    print "K = ", k
-    for temp in range(len(k_paths)):
-        sol, cyc = ksp.get_sol(k_paths, k_costs, inputs, outputs, temp)
-        print temp, sol.oper, sol.loc, sol.type, cyc
-
+    k = 1
+    k_sols, k_times = ksp.k_shortest_path(rs, column, floor, inputs, outputs, k)
+    for i in range(len(k_sols)):
+        sol = k_sols[i]
+        print sol.loc, sol.oper, sol.type, k_times[i]
     print '-------------------------'

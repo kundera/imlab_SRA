@@ -176,11 +176,32 @@ class action(object):
         [remove_dup_path.append(x) for x in selected_path if x not in remove_dup_path]
         [remove_dup_length.append(x) for x in selected_length if x not in remove_dup_length]
 
-        # selected_path = set(selected_path)
-        # selected_length = set(selected_length)
+        if bool(remove_dup_path) == True:
+            # get maximun cycletime on 2Ss in solutions
+            modify_list = []
+            avg_cycletime_2Ss = []
 
+            for i in range(len(remove_dup_path)):
+                path = remove_dup_path[i]
+                sol_of_loca = path[1][:-3] + "/" + path[2][:-3] + "/" \
+                              + path[3][:-3] + "/" + path[4][:-3]
+                sol_of_loca = sol_of_loca.replace("[", "")
+                sol_of_loca = sol_of_loca.replace("]", "")
+                sol_of_loca = sol_of_loca.replace(" ", "")
+                list_sol_of_loca = sol_of_loca.split("/")
+                list_sol_of_loca = [x.split(',') for x in list_sol_of_loca]
+                list_sol_of_loca = self.adjust_list(list_sol_of_loca)
+                modify_list.append(list_sol_of_loca)
 
-        return remove_dup_path, remove_dup_length
+            for j in range(len(modify_list)):
+                avg_cycletime_2Ss.append(((self.get_time([0,0,0],modify_list[j][0]) + self.get_time([0,0,0],modify_list[j][2])) / 2))
+
+            for i,j in enumerate(avg_cycletime_2Ss):
+                if j is max(avg_cycletime_2Ss):
+                    return modify_list[i]
+        else:
+
+            return remove_dup_path#, remove_dup_length
 
 
 
@@ -255,7 +276,7 @@ class action(object):
         for n, nbrs in G.adjacency_iter():
             for nbr, eattr in nbrs.items():
                 data = eattr['weight']
-                if float(data) == 0:
+                if float(data) == 0 and n != 'start' and n != 'end' and nbr != 'start' and nbr != 'end':
                     G.remove_edge('%s' % n, '%s' % nbr)
 
         #print G.node
@@ -341,7 +362,7 @@ class action(object):
         for n, nbrs in G.adjacency_iter():
             for nbr, eattr in nbrs.items():
                 data = eattr['weight']
-                if data == 0.0:
+                if float(data) == 0 and n != 'start' and n != 'end' and nbr != 'start' and nbr != 'end':
                     G.remove_edge('%s' % n, '%s' % nbr)
 
         path = nx.dijkstra_path(G,'start','end')
@@ -455,11 +476,26 @@ class action(object):
 
         path = nx.dijkstra_path(G,'start','end')
         length = nx.dijkstra_path_length(G, 'start', 'end')
+        # all_path = nx.all_shortest_paths(G,'start','end', 'weight')
+        # path_1 = self.find_another_dijk_solution(G,'start','end',length)
+        # path_0 = self.print_dijk(G)
+        # if bool(path_1) == True:
+        #     print str(path_0[0]) + " > " + str(path_1[0])
+        #     print str(path_0[1]) + " > " + str(path_1[1])
+        #     print str(path_0[2]) + " > " + str(path_1[2])
+        #     print str(path_0[3]) + " > " + str(path_1[3])
         io = ['S', 'R', 'S', 'R']
         # nx.draw_networkx(G, arrows=True, with_labels=True)
         # plt.show()
         # print 'SR1SR2', path['start']['end'], length['start']['end']
-        return 'SR1SR2', path, length, self.print_dijk(G),io
+        # if bool(path_1) == True:
+        #     return 'SR1SR2', path, length, path_1, io
+        # else:
+        #     return 'SR1SR2', path, length, self.print_dijk(G),io
+        return 'SR1SR2', path, length, self.print_dijk(G), io
+
+        # return [p for p in all_path]
+
 
     def dijk_sr2sr1(self, rs, column, floor, outputs):# ex :outputs = [10,18]
         G = nx.DiGraph()
@@ -551,11 +587,24 @@ class action(object):
 
         path = nx.dijkstra_path(G,'start','end')
         length = nx.dijkstra_path_length(G, 'start', 'end')
+        # path_1 = self.find_another_dijk_solution(G,'start','end',length)
+        # path_0 = self.print_dijk(G)
+        # if bool(path_1) == True:
+        #     print str(path_0[0]) + " > " + str(path_1[0])
+        #     print str(path_0[1]) + " > " + str(path_1[1])
+        #     print str(path_0[2]) + " > " + str(path_1[2])
+        #     print str(path_0[3]) + " > " + str(path_1[3])
         io = ['S','R','S','R']
         # nx.draw_networkx(G, arrows=True, with_labels=True)
         # plt.show()
         # print 'SR2SR1', path['start']['end'], length['start']['end']
         return 'SR2SR1', path, length, self.print_dijk(G), io
+
+        # if bool(path_1) == True:
+        #     return 'SR2SR1', path, length, path_1, io
+        # else:
+        #     return 'SR2SR1', path, length, self.print_dijk(G),io
+
 
     def dijk(self,rs,column,floor,input,output): # concatenate 4 solutions // input/output example : [51,1] = 1 cycle outputs
 
@@ -1149,11 +1198,13 @@ class action(object):
         a2, b2, c2, d2, e2 = self.dijk_sr2sr1(rs, column, floor, output)
 
         if c1 <= c2:
+            print "used sr1sr2"
             io = [input[0], output[0], input[1], output[1]]
             sol = solution.solution(d1, io, e1)
             cycletime = c1
             return sol, cycletime
         elif c2 < c1:
+            print 'used sr2sr1'
             io = [input[0], output[0], input[1], output[1]]
             sol = solution.solution(d1, io, e1)
             cycletime = c1
@@ -1283,7 +1334,7 @@ class action(object):
 
 
 if __name__ == '__main__':
-    test = problemreader.ProblemReader(28)
+    test = problemreader.ProblemReader(26)
     rs = test.get_problem(1).rack.status
     column = test.get_problem(1).rack.column
     floor = test.get_problem(1).rack.floor
@@ -1302,89 +1353,97 @@ if __name__ == '__main__':
     cycletime5 = 0
     cycletime6 = 0
     cycletime7 = 0
+    input = input[0:2]
+    output = output[4:6]
+    print ts.dijk_sr1sr2(rs,column,floor,output)
+    abc = 0
+    # for cycle in range(len(input)/2):
+    #     print cycle
+    #     inputs = input[(cycle+1)*2-2:(cycle+1)*2]
+    #     outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+    #     a,b = ts.dijk_srsr_faster_one(rs, column, floor,inputs, outputs)
+    #     rs = sm.change_rs(rs, column, floor, a)
+    #     cycletime0 += b
+    # print cycletime0
 
-    # rs = [12, 19, 22, 0, 9, 1, 2, -1, 7, 10, 10, 24, 20, 10, 10, 3, 3, 7, 8, -1, 4, 23, 23, 8, 12, -1, 7, 19, 3, 5, 12, 10, -1, 23, 10, 21, 16, 6, -1, 10, 10, 1, 10, 19, -1, 10, 10, -1, -1, 4, 20, 4, 16, 20, -1, -1, 22, -1, 5, 3, 8, 9, 4, 9, -1, 4, 18, 21, -1, 4, -1, 8, -1, 6, 16, 7, -1, -1, -1, 11, 1, -1, -1, 24, 18, 0, 18, 11, -1, 1, 1, 16, 16, 8, -1, -1, 2, 3, 13, 5, 23, 19, 1, -1, 13, 10, 4, 22, 1, 7, 22, 7, 9, 7, 18, 1, 10, -1, 5, 4, 9, 20, 0, 2, -1, 9, -1, 16, -1, 5, 24, 21, 8, 23, 8, -1, 2, 11, -1, 5, 5, 22, 22, 12, -1, -1, 6, -1, 13, 12, 8, 3, 8, 9, 2, 16, -1, 25, -1, 6, 1, 10, 1, 10, 1, -1, -1, 25, -1, -1, 10, 2, 7, 22, 20, 4, 5, -1, -1, 3, 2, 7, 0, 1, -1, 21, 12, 21, 22, 6, 24, 16, 13, -1, 0, 12, 6, 0, 0, 18]
-    # input = [1, 9]
-    # output = [3, 14]
+
+
+
+
+    # # rs0 = test.get_problem(2).rack.status
+    # rs1 = test.get_problem(2).rack.status
+    # # da = rs1.count(17)
+    # # ea = 0
+    # # print da
+    # # rs2 = test.get_problem(3).rack.status
+    # # rs3 = test.get_problem(3).rack.status
+    # # rs4 = test.get_problem(3).rack.status
+    # # rs5 = test.get_problem(3).rack.status
+    # # rs6 = test.get_problem(3).rack.status
+    # # rs7 = test.get_problem(3).rack.status
     #
-    # ts.dijk_sr1sr2(rs,column,floor,output)
-
-
-
-    # rs0 = test.get_problem(1).rack.status
-    rs1 = test.get_problem(1).rack.status
-    # da = rs1.count(17)
-    # ea = 0
-    # print da
-    # rs2 = test.get_problem(3).rack.status
-    # rs3 = test.get_problem(3).rack.status
-    # rs4 = test.get_problem(3).rack.status
-    # rs5 = test.get_problem(3).rack.status
-    # rs6 = test.get_problem(3).rack.status
-    # rs7 = test.get_problem(3).rack.status
-
-    # vr = visualize_rack.visualize()
-    # vr.visual_rack(rs,column,floor)
-
-    for cycle in range(len(input)/2):
-        print cycle
-        inputs = input[(cycle+1)*2-2:(cycle+1)*2]
-        outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
-        # da += inputs.count(17)
-        # ea += outputs.count(17)
-        # print da, ea
-        # a,b = ts.dijk_srsr_with_abc_a(rs0,column,floor,inputs,outputs)
-        # print a.type, a.loc
-        c,d = ts.dijk_srsr_with_abc_b(rs1,column,floor,inputs,outputs)
-        print c.type, c.loc
-        # e,f = ts.dijk_srsr_faster_one(rs2,column,floor,inputs,outputs)
-        # print e.type, e.loc
-        # g,h = ts.dijk_srsr_density_test_fixed_output(rs3,column,floor,inputs,outputs)
-        # print g.type, g.loc
-        # i,j = ts.dijk_srsr_density(rs4,column,floor,inputs,outputs,0)
-        # print i.type, i.loc
-        # l,m = ts.dijk_srsr_density(rs5,column,floor,inputs,outputs,1)
-        # print l.type, l.loc
-        # n,o = ts.dijk_srsr_density(rs6,column,floor,inputs,outputs,2)
-        # print n.type, n.loc
-        # p,q = ts.dijk_srsr_density(rs7,column,floor,inputs,outputs,3)
-        # print p.type, p.loc
-        # cycletime0 += b
-        cycletime1 += d
-        # cycletime2 += f
-        # cycletime3 += h
-        # cycletime4 += j
-        # cycletime5 += m
-        # cycletime6 += o
-        # cycletime7 += q
-        # rs0 = sm.change_rs(rs0,column,floor,a)
-        rs1 = sm.change_rs(rs1,column,floor,c)
-        print rs1
-        # rs2 = sm.change_rs(rs2,column,floor,e)
-        # rs3 = sm.change_rs(rs3,column,floor,g)
-        # rs4 = sm.change_rs(rs4,column,floor,i)
-        # rs5 = sm.change_rs(rs5,column,floor,l)
-        # rs6 = sm.change_rs(rs6,column,floor,n)
-        # rs7 = sm.change_rs(rs7,column,floor,p)
-        #
-    # print "abc large > few :" + str(cycletime0)
-    # print "abc few > large :" + str(cycletime1)
-    # print "dijk_srsr_faster_one :" + str(cycletime2)
-    # print "dijk_srsr fixed retrieval(large>few) :" + str(cycletime3)
-    # print "dijk_srsr_density_0 :" + str(cycletime4)
-    # print "dijk_srsr_density_1 :" + str(cycletime5)
-    # print "dijk_srsr_density_2 :" + str(cycletime6)
-    # print "dijk_srsr_density_3 :" + str(cycletime7)
-    # vr.visual_rack(rs0, column, floor)
-    # vr.visual_rack(rs1, column, floor)
-    # vr.visual_rack(rs2, column, floor)
-    # vr.visual_rack(rs3, column, floor)
-    # vr.visual_rack(rs4, column, floor)
-    # vr.visual_rack(rs5, column, floor)
-    # vr.visual_rack(rs6, column, floor)
-    # vr.visual_rack(rs7, column, floor)
-
-
-
-    #ts.abc_action_SSRR(rs,column,floor,input,output)
+    # # vr = visualize_rack.visualize()
+    # # vr.visual_rack(rs,column,floor)
+    #
+    # for cycle in range(len(input)/2):
+    #     print cycle
+    #     inputs = input[(cycle+1)*2-2:(cycle+1)*2]
+    #     outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+    #     # da += inputs.count(17)
+    #     # ea += outputs.count(17)
+    #     # print da, ea
+    #     # a,b = ts.dijk_srsr_with_abc_a(rs0,column,floor,inputs,outputs)
+    #     # print a.type, a.loc
+    #     c,d = ts.dijk_srsr_with_abc_b(rs1,column,floor,inputs,outputs)
+    #     print c.type, c.loc
+    #     # e,f = ts.dijk_srsr_faster_one(rs2,column,floor,inputs,outputs)
+    #     # print e.type, e.loc
+    #     # g,h = ts.dijk_srsr_density_test_fixed_output(rs3,column,floor,inputs,outputs)
+    #     # print g.type, g.loc
+    #     # i,j = ts.dijk_srsr_density(rs4,column,floor,inputs,outputs,0)
+    #     # print i.type, i.loc
+    #     # l,m = ts.dijk_srsr_density(rs5,column,floor,inputs,outputs,1)
+    #     # print l.type, l.loc
+    #     # n,o = ts.dijk_srsr_density(rs6,column,floor,inputs,outputs,2)
+    #     # print n.type, n.loc
+    #     # p,q = ts.dijk_srsr_density(rs7,column,floor,inputs,outputs,3)
+    #     # print p.type, p.loc
+    #     # cycletime0 += b
+    #     cycletime1 += d
+    #     # cycletime2 += f
+    #     # cycletime3 += h
+    #     # cycletime4 += j
+    #     # cycletime5 += m
+    #     # cycletime6 += o
+    #     # cycletime7 += q
+    #     # rs0 = sm.change_rs(rs0,column,floor,a)
+    #     rs1 = sm.change_rs(rs1,column,floor,c)
+    #     print rs1
+    #     # rs2 = sm.change_rs(rs2,column,floor,e)
+    #     # rs3 = sm.change_rs(rs3,column,floor,g)
+    #     # rs4 = sm.change_rs(rs4,column,floor,i)
+    #     # rs5 = sm.change_rs(rs5,column,floor,l)
+    #     # rs6 = sm.change_rs(rs6,column,floor,n)
+    #     # rs7 = sm.change_rs(rs7,column,floor,p)
+    #     #
+    # # print "abc large > few :" + str(cycletime0)
+    # # print "abc few > large :" + str(cycletime1)
+    # # print "dijk_srsr_faster_one :" + str(cycletime2)
+    # # print "dijk_srsr fixed retrieval(large>few) :" + str(cycletime3)
+    # # print "dijk_srsr_density_0 :" + str(cycletime4)
+    # # print "dijk_srsr_density_1 :" + str(cycletime5)
+    # # print "dijk_srsr_density_2 :" + str(cycletime6)
+    # # print "dijk_srsr_density_3 :" + str(cycletime7)
+    # # vr.visual_rack(rs0, column, floor)
+    # # vr.visual_rack(rs1, column, floor)
+    # # vr.visual_rack(rs2, column, floor)
+    # # vr.visual_rack(rs3, column, floor)
+    # # vr.visual_rack(rs4, column, floor)
+    # # vr.visual_rack(rs5, column, floor)
+    # # vr.visual_rack(rs6, column, floor)
+    # # vr.visual_rack(rs7, column, floor)
+    #
+    #
+    #
+    # #ts.abc_action_SSRR(rs,column,floor,input,output)
 
