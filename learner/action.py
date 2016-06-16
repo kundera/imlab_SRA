@@ -1218,63 +1218,67 @@ class action(object):
         a2, b2, c2, d2, e2 = self.dijk_sr2sr1(rs, column, floor, output)
 
         if c1 <= c2:
-            print 1
             if self.get_time([0, 0, 0], d1[0]) <= self.get_time([0, 0, 0], d1[2]) and input[0] <= input[1]:
-                print 2
                 io = [input[1], output[0], input[0], output[1]]
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
                 return sol, cycletime
             elif self.get_time([0, 0, 0], d1[0]) <= self.get_time([0, 0, 0], d1[2]) and input[1] < input[0]:
-                print 3
                 io = [input[0], output[0], input[1], output[1]]
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
                 return sol, cycletime
             elif self.get_time([0, 0, 0], d1[0]) > self.get_time([0, 0, 0], d1[2]) and input[0] <= input[1]:
-                print 4
                 io = [input[0], output[0], input[1], output[1]]
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
                 return sol, cycletime
             elif self.get_time([0, 0, 0], d1[0]) > self.get_time([0, 0, 0], d1[2]) and input[1] < input[0]:
-                print 5
                 io = [input[1], output[0], input[0], output[1]]
                 sol = solution.solution(d1, io, e1)
                 cycletime = c1
                 return sol, cycletime
 
         elif c1 > c2:
-            print 6
             if self.get_time([0, 0, 0], d2[0]) <= self.get_time([0, 0, 0], d2[2]) and input[0] <= input[1]:
-                print 7
                 io = [input[1], output[0], input[0], output[1]]
                 sol = solution.solution(d2, io, e2)
                 cycletime = c2
                 return sol, cycletime
             elif self.get_time([0, 0, 0], d2[0]) <= self.get_time([0, 0, 0], d2[2]) and input[1] < input[0]:
-                print 8
                 io = [input[0], output[0], input[1], output[1]]
                 sol = solution.solution(d2, io, e2)
                 cycletime = c2
                 return sol, cycletime
             elif self.get_time([0, 0, 0], d2[0]) > self.get_time([0, 0, 0], d2[2]) and input[0] <= input[1]:
-                print 9
                 io = [input[0], output[0], input[1], output[1]]
                 sol = solution.solution(d2, io, e2)
                 cycletime = c2
                 return sol, cycletime
             elif self.get_time([0, 0, 0], d2[0]) > self.get_time([0, 0, 0], d2[2]) and input[1] < input[0]:
-                print 10
                 io = [input[1], output[0], input[0], output[1]]
                 sol = solution.solution(d2, io, e2)
                 cycletime = c2
                 return sol, cycletime
 
 
-
-
-
+    def dijk_srsr_with_abc_idx(self, rs, column, floor, input, output, idx):
+        if idx == 0:
+            if output[0] < output[1]:
+                output.reverse()
+            return self.dijk_srsr_with_abc_a(rs, column, floor, input, output)
+        elif idx == 1:
+            if output[0] > output[1]:
+                output.reverse()
+            return self.dijk_srsr_with_abc_a(rs, column, floor, input, output)
+        elif idx == 2:
+            if output[0] < output[1]:
+                output.reverse()
+            return self.dijk_srsr_with_abc_b(rs, column, floor, input, output)
+        elif idx == 3:
+            if output[0] > output[1]:
+                output.reverse()
+            return self.dijk_srsr_with_abc_b(rs, column, floor, input, output)
 
 
 

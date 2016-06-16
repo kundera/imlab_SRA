@@ -25,7 +25,7 @@ class ASRSplayer(object):
     STATE_FRAMES = 2  # number of frames to store in the state
     COLUMN, FLOOR = (20,20)
     OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
-    LEARN_RATE = 1e-4
+    LEARN_RATE = 1e-3
     ITERATION = 1000000
 
 
@@ -99,7 +99,7 @@ class ASRSplayer(object):
                 total_action[action_chosen] += 1
 
                 at = action.action()
-                solution, cycletime = at.dijk_srsr_density(rack, clm, flr, input, output, action_chosen)
+                solution, cycletime = at.dijk_srsr_with_abc_idx(rack, clm, flr, input, output, action_chosen)
 
                 sim = nextstate.simul()
 
@@ -215,7 +215,7 @@ class ASRSplayer(object):
             total_action[action_chosen] += 1
 
             at = action.action()
-            solution, cycletime = at.dijk_srsr_density(rack, clm, flr, input, output, action_chosen)
+            solution, cycletime = at.dijk_srsr_with_abc_idx(rack, clm, flr, input, output, action_chosen)
 
             sim = nextstate.simul()
 
@@ -322,7 +322,7 @@ class ASRSplayer(object):
 
 if __name__ == '__main__':
     pl = ASRSplayer()
-    tr = problemreader.ProblemReader(25).get_problems(1)
+    tr = problemreader.ProblemReader(25).get_problems(10)
     va = problemreader.ProblemReader(25).get_problems(1)
     pl._train(tr, va)
 
