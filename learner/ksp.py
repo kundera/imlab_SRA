@@ -191,7 +191,7 @@ class KSP():
 
         return A, A_cost
 
-    def k_shortest_path(self, rs, column, floor, outputs, itr):
+    def k_shortest_path(self, rs, column, floor, inputs, outputs, itr):
 
         G = nx.Graph()
 
@@ -245,29 +245,25 @@ class KSP():
                 data4 = e['phase']
                 if data2 == 3 and data4 == 4 and data1 != data3:
                     G.add_edge(a, b, weight=self.get_time(data1, data3))
-        # nx.draw_networkx(G, arrows=True, with_labels=True)
-        # plt.show()
-        k_path, path_costs = self.yen(G, 'start', 'end', itr)
-        # paths = []
-        # costs = []
-        #
-        # for temp in range(len(k_path)):
-        #     if k_path[temp][2][0:-3] == k_path[temp][3][0:-3]:
-        #         paths.append(k_path[temp])
-        #         costs.append(path_costs[temp])
-        return k_path, path_costs
 
-    def get_sol(self, k_path, path_costs, inputs, outputs, idx):
+        # make k paths
+        k_path, path_costs = self.yen(G, 'start', 'end', itr)
+
         io = ['S', 'R', 'S', 'R']
         item = [inputs[0], outputs[0], inputs[1], outputs[1]]
-        path = self.print_dijk(k_path[idx])
-        sol = solution.solution(path, item, io)
+        sols = []
 
-        return sol, path_costs[idx]
+        # make array of solutions
+        for temp in range(itr):
+            path = self.print_dijk(k_path[temp])
+            sol = solution.solution(path, item, io)
+            sols.append(sol)
+
+        return sols, path_costs
 
 if __name__ == '__main__':
     probnum = 28
-    pronum = 1
+    pronum = 2
     test = problemreader.ProblemReader(probnum)
     rs = test.get_problem(pronum).rack.status
     column = test.get_problem(pronum).rack.column
@@ -279,11 +275,9 @@ if __name__ == '__main__':
     outputs = output[0:2]
 
     ksp = KSP()
-    k = 30
-    k_paths, k_costs = ksp.k_shortest_path(rs, column, floor, outputs, k)
-    print "K = ", k
-    for temp in range(len(k_paths)):
-        sol, cyc = ksp.get_sol(k_paths, k_costs, inputs, outputs, temp)
-        print temp, sol.oper, sol.loc, sol.type, cyc
-
+    k = 20
+    k_sols, k_times = ksp.k_shortest_path(rs, column, floor, inputs, outputs, k)
+    for i in range(k):
+        sol = k_sols[i]
+        print sol.loc, sol.oper, sol.type, k_times[i]
     print '-------------------------'
