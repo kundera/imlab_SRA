@@ -371,7 +371,7 @@ class KSP():
         io = ['S', 'R', 'S', 'R']
         item = [inputs[0], outputs[0], inputs[1], outputs[1]]
         sols = []
-        print path_costs
+
         # make array of solutions
         for temp in range(len(k_path)):
             path = self.print_dijk(k_path[temp])
