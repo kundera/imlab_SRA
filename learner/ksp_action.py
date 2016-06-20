@@ -1357,6 +1357,13 @@ class KSP_ACTION(object, ksp.KSP):
             else:
                 sol.type[0] = input[1]
                 sol.type[2] = input[0]
+        elif index == 1:
+            if loc0 >= loc2:
+                sol.type[0] = input[1]
+                sol.type[2] = input[0]
+            else:
+                sol.type[0] = input[0]
+                sol.type[2] = input[1]
 
         return sol, time
 
