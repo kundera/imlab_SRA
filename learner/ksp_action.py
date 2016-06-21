@@ -1295,7 +1295,7 @@ class KSP_ACTION(object, ksp.KSP):
                             sol = sols[0]
                             time = times[0]
                         else:
-                            if ksp.KSP.get_time(self, [0, 0, 0], sol.loc[1]) < ksp.KSP.get_time(self, [0, 0, 0], sols[i].loc[1]):
+                            if ksp.KSP.get_time(self, [0, 0, 0], sol.loc[1]) > ksp.KSP.get_time(self, [0, 0, 0], sols[i].loc[1]):
                                 sol = sols[i]
                                 time = times[i]
 
@@ -1312,6 +1312,8 @@ class KSP_ACTION(object, ksp.KSP):
                 input = [input[1], input[0]]
             elif input[0] < input[1]:
                 input = [input[0], input[1]]
+        elif index == 2:
+            input = [input[0], input[1]]
 
         output1 = [output[0], output[1]]
         output2 = [output[1], output[0]]
@@ -1346,8 +1348,9 @@ class KSP_ACTION(object, ksp.KSP):
             sol = sol2
             time = time2
         else:
-            sol = sol2
-            time = time2
+            sol = sol1
+            time = time1
+
         loc0 = ksp.KSP.get_time(self, [0, 0, 0], sol.loc[0])
         loc2 = ksp.KSP.get_time(self, [0, 0, 0], sol.loc[2])
         if index == 0:
@@ -1376,12 +1379,17 @@ class KSP_ACTION(object, ksp.KSP):
             return self.final_action_test2(rs, column, floor, input, output, k, 0)
         elif index == 3:
             return self.final_action_test2(rs, column, floor, input, output, k, 1)
+        elif index == 4:
+            return self.final_action_test1(rs, column, floor, input, output, k, 2)
+        elif index == 5:
+            ts = action.action()
+            return ts.dijk(rs, column, floor, input, output)
 
 
 if __name__ == '__main__':
 
     # probnum = 28
-    # pronum = 1
+    # pronum = 10
     # test = problemreader.ProblemReader(probnum)
     # rs = test.get_problem(pronum).rack.status
     # column = test.get_problem(pronum).rack.column
@@ -1396,22 +1404,22 @@ if __name__ == '__main__':
     # cycletime0 = 0
     #
     # rs0 = copy.deepcopy(rs)
-    # # size = len(input) / 2
-    # size = 100
+    # size = len(input) / 2
+    # # size = 100
     #
     # temp = 1
     # k = 0
     # ite = 10
     # vi.comparison_visual(rs0, column, floor, temp)
-
-
+    #
+    #
     # for i in range(size):
     #     inputs = input[(i + 1) * 2 - 2:(i + 1) * 2]
     #     outputs = output[(i + 1) * 2 - 2:(i + 1) * 2]
     #
     #     # a, b = ka.actions_test(rs0, column, floor, inputs, outputs, k, ite)
     #     # a, b = ts.dijk(rs0, column, floor, inputs, outputs)
-    #     a, b = ka.final_action_test(rs0, column, floor, inputs, outputs, k, 1)
+    #     a, b = ka.final(rs0, column, floor, inputs, outputs, k, 1)
     #     cycletime0 += b
     #     rs0 = sm.change_rs(rs0, column, floor, a)
     #
@@ -1424,8 +1432,8 @@ if __name__ == '__main__':
     #
     # plt.show()
 
-    probnum = 28
-    pronum = 1
+    probnum = 27
+    pronum = 11
 
     k = 0
 
@@ -1434,9 +1442,9 @@ if __name__ == '__main__':
     sm = nextstate.simul()
 
 
-    while pronum < 6:
+    while pronum < 21:
 
-        for i in range(0, 4):
+        for i in range(0, 6):
             test = problemreader.ProblemReader(probnum)
             rs = test.get_problem(pronum).rack.status
             column = test.get_problem(pronum).rack.column
@@ -1446,13 +1454,14 @@ if __name__ == '__main__':
 
             rs0 = copy.deepcopy(rs)
             cycletime = 0
-
-            for cycle in range(len(input)/2):
-                inputs = input[(cycle+1)*2-2:(cycle+1)*2]
-                outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
-                sol, b = ka.final(rs0, column, floor, inputs, outputs, k, i)
-                rs0 = sm.change_rs(rs0, column, floor, sol)
-                cycletime += b
+            if i == 1 or i == 2 or i == 5:
+                for cycle in range(len(input)/2):
+                    inputs = input[(cycle+1)*2-2:(cycle+1)*2]
+                    outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+                    sol, b = ka.final(rs0, column, floor, inputs, outputs, k, i)
+                    # sol, b = ts.dijk(rs0, column, floor, inputs, outputs)
+                    rs0 = sm.change_rs(rs0, column, floor, sol)
+                    cycletime += b
             print pronum, i, cycletime
 
         pronum += 1
