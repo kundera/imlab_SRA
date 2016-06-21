@@ -11,10 +11,6 @@ def dijk(test_data):
 
     for problem_set in test_data:
 
-        cnt += 1
-        if cnt < 3:
-            continue
-
         total_cycletime = 0.0
 
         sht = problem_set.shuttleNum
