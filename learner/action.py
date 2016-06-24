@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class action(object):
 
-    yspeed = 2.
+    yspeed = 3.
     zspeed = 1.
 
     def loca_calculate(self,index,size_h,size_v):

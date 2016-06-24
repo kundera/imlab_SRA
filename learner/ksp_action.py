@@ -1432,8 +1432,8 @@ if __name__ == '__main__':
     #
     # plt.show()
 
-    probnum = 27
-    pronum = 11
+    probnum = 28
+    pronum = 1
 
     k = 0
 
@@ -1444,7 +1444,12 @@ if __name__ == '__main__':
 
     while pronum < 21:
 
+        if pronum == 10:
+            continue
+
         for i in range(0, 6):
+            if i != 2 and i != 4:
+                continue
             test = problemreader.ProblemReader(probnum)
             rs = test.get_problem(pronum).rack.status
             column = test.get_problem(pronum).rack.column
@@ -1454,14 +1459,13 @@ if __name__ == '__main__':
 
             rs0 = copy.deepcopy(rs)
             cycletime = 0
-            if i == 1 or i == 2 or i == 5:
-                for cycle in range(len(input)/2):
-                    inputs = input[(cycle+1)*2-2:(cycle+1)*2]
-                    outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
-                    sol, b = ka.final(rs0, column, floor, inputs, outputs, k, i)
-                    # sol, b = ts.dijk(rs0, column, floor, inputs, outputs)
-                    rs0 = sm.change_rs(rs0, column, floor, sol)
-                    cycletime += b
+            for cycle in range(len(input)/2):
+                inputs = input[(cycle+1)*2-2:(cycle+1)*2]
+                outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+                sol, b = ka.final(rs0, column, floor, inputs, outputs, k, i)
+                # sol, b = ts.dijk(rs0, column, floor, inputs, outputs)
+                rs0 = sm.change_rs(rs0, column, floor, sol)
+                cycletime += b
             print pronum, i, cycletime
 
         pronum += 1
