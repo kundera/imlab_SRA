@@ -5,9 +5,10 @@ import Queue
 import math
 import time
 
-
+from simulator import nextstate
 from problemIO import problemreader
 import solution
+import ksp_action
 
 class KSP():
 
@@ -195,10 +196,12 @@ class KSP():
     def difference_yen(self, G, source, target, differ):
         # First shortest path from the source to the target
         c, p = nx.single_source_dijkstra(G, source, target)
-        A = [p[target]]  # path
+        A1 = [p[target]]  # path
+        temp = [A1[0][0], A1[0][1], A1[0][-4], A1[0][-3], A1[0][-2], A1[0][-1]]
+        A = []
+        A.append(temp)
         A_cost = [c[target]]  # length
         B = Queue.PriorityQueue()
-
         target_time = c[target] + differ
         # for k in range(1, K):
         k = 1
@@ -206,6 +209,10 @@ class KSP():
             for i in range(len(A[k - 1]) - 1):
                 # Spur node ranges over the (k-1)-shortest path minus its last node:
                 sn = A[k - 1][i]
+
+                # for i in range(len(sn)):
+                #     print sn[i]
+
                 if sn[-2:] == 'r2':
                     break
                 # Root path: from the source to the spur node of the (k-1)-shortest path
@@ -309,7 +316,6 @@ class KSP():
         return A, A_cost
 
     def k_shortest_path(self, rs, column, floor, inputs, outputs, itr):
-
         G = nx.Graph()
 
         G.add_node('start', loca=[0, 0, 0], phase=0)
@@ -327,7 +333,7 @@ class KSP():
                 G.add_node('%s_s1' % loca1, loca=loca1, phase=1)
                 G.add_edge('start', '%s_s1' % loca1, weight=self.get_time(init_loca, loca1))
 
-        # create R1
+        # create R1 and S2
         for b, item2 in enumerate(rack):
             if item2 == outputs[0]:
                 loca2 = self.loca_calculate(b, size_h, size_v)
@@ -365,13 +371,11 @@ class KSP():
 
         # make k paths
         # k_path, path_costs = self.yen(G, 'start', 'end', itr)
-
         k_path, path_costs = self.difference_yen(G, 'start', 'end', itr)
 
         io = ['S', 'R', 'S', 'R']
         item = [inputs[0], outputs[0], inputs[1], outputs[1]]
         sols = []
-
         # make array of solutions
         for temp in range(len(k_path)):
             path = self.print_dijk(k_path[temp])
@@ -380,9 +384,24 @@ class KSP():
 
         return sols, path_costs
 
+    def select_action_considering_sr_shortest(self, rs, column, floor, input, output, k):
+        # k means finding solutions optimal cycletime + k
+        get_average_time_list = []
+        k_sols, k_times = self.k_shortest_path(rs, column, floor, input, output, k)
+
+        for i in range(len(k_sols)):
+            get_average_time_list.append((self.get_time([0, 0, 0], k_sols[i].loc[0]) +
+                                          self.get_time([0, 0, 0], k_sols[i].loc[1]) +
+                                          self.get_time([0, 0, 0], k_sols[i].loc[2]) +
+                                          self.get_time([0, 0, 0], k_sols[i].loc[3])) / 4)
+
+        for i in range(len(get_average_time_list)):
+            if get_average_time_list[i] == min(get_average_time_list):
+                return k_sols[i], k_times[i], len(k_sols)
+
 if __name__ == '__main__':
-    probnum = 28
-    pronum = 2
+    probnum = 29
+    pronum = 1
     test = problemreader.ProblemReader(probnum)
     rs = test.get_problem(pronum).rack.status
     column = test.get_problem(pronum).rack.column
@@ -394,9 +413,49 @@ if __name__ == '__main__':
     outputs = output[0:2]
 
     ksp = KSP()
-    k = 1
-    k_sols, k_times = ksp.k_shortest_path(rs, column, floor, inputs, outputs, k)
-    for i in range(len(k_sols)):
-        sol = k_sols[i]
-        print sol.loc, sol.oper, sol.type, k_times[i]
-    print '-------------------------'
+    ksp_action = ksp_action.KSP_ACTION()
+    sm = nextstate.simul()
+    k = 0
+    cycletime = 0
+
+    for cycle in range(len(input)/2):
+        print '-----------------', cycle, '--------------------------------------'
+        inputs = input[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+        outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+
+        a, b = ksp_action.final(rs, column, floor, inputs, outputs, k, 2)
+
+        rs = sm.change_rs(rs, column, floor, a)
+        cycletime += b
+    print cycletime
+
+    # k_sols, k_times = ksp.k_shortest_path(rs, column, floor, inputs, outputs, k)
+    # for i in range(len(k_sols)):
+    #     sol = k_sols[i]
+    #     print sol.loc, sol.oper, sol.type, k_times[i]
+    # cycletime = 0
+    # avernum = 0
+    # count = 0
+    # for cycle in range(len(input) / 2):
+    #     inputs = input[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+    #     outputs = output[(cycle + 1) * 2 - 2:(cycle + 1) * 2]
+    #     # if cycle == 202:
+    #     #     d, e = ksp.k_shortest_path(rs, column, floor, inputs, outputs, k)
+    #     #     print inputs, outputs
+    #     #     for temp in range(len(d)):
+    #     #         print temp, d[temp].loc, e[temp]
+    #     a, b, c = ksp.select_action_considering_sr_shortest(rs, column, floor, inputs, outputs, k)
+    #     rs = sm.change_rs(rs, column, floor, a)
+    #     cycletime += b
+    #     avernum += c
+    #     if c != 1:
+    #         count += 1
+    #     print cycle, c
+    #
+    # print pronum, cycletime, avernum/(len(input) / 2)
+    #
+    # print count
+    # a, b, c = ksp.select_action_considering_sr_shortest(rs, column, floor, inputs, outputs, k)
+
+
+    print '-----------------------test end-------------------------'
